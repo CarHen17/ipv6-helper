@@ -142,7 +142,7 @@ export function CalculatorView() {
           {/* Step 1: Input */}
           <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6" layout>
             <form onSubmit={handleCalcSubmit}>
-              <label className="block text-xs font-medium text-foreground mb-2.5">
+              <label className="block text-sm font-medium text-foreground mb-3">
                 Insira um endereço IPv6 no formato CIDR:
               </label>
               <div className="flex gap-3">
@@ -151,11 +151,11 @@ export function CalculatorView() {
                   onChange={e => ctx.setIpv6Input(e.target.value)}
                   placeholder="Ex.: 2001:db8::/41"
                   className={cn(
-                    "font-mono text-xs bg-secondary/60 border-border/60 flex-1 h-9",
+                    "font-mono text-sm bg-secondary/60 border-border/60 flex-1 h-11",
                     ctx.errorMessage && "animate-shake border-destructive"
                   )}
                 />
-                <Button type="submit" size="sm" className="gap-2 h-9 px-4 text-xs">
+                <Button type="submit" className="gap-2 h-11 px-5 text-sm">
                   <Calculator className="w-4 h-4" />
                   <span className="hidden sm:inline">Calcular</span>
                 </Button>
