@@ -281,8 +281,8 @@ export function PlannerView() {
 
             {/* Tree */}
             <div className="bg-card rounded-xl border border-border p-5">
-              <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
-                <Network className="w-4 h-4 text-primary" /> Hierarquia visual
+               <h3 className="text-xs font-medium mb-4 flex items-center gap-2">
+                 <Network className="w-3.5 h-3.5 text-primary" /> Hierarquia visual
               </h3>
               <div className="space-y-0">
                 {/* Base node */}
