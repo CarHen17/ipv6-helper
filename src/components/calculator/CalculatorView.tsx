@@ -427,8 +427,8 @@ export function CalculatorView() {
                     >
                       {ctx.aggregationResult.canAggregate ? (
                         <div>
-                          <h4 className="text-xs font-medium flex items-center gap-1.5 mb-3">
-                            <Layers className="w-3.5 h-3.5 text-primary" /> Bloco Agregado
+                          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-3">
+                            <Layers className="w-4 h-4 text-primary" /> Bloco Agregado
                           </h4>
                           <div className="space-y-2">
                             <InfoRow label="CIDR" value={ctx.aggregationResult.aggregatedBlock!.subnet} onCopy={() => copyToClipboard(ctx.aggregationResult!.aggregatedBlock!.subnet)} />
