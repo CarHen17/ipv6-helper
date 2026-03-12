@@ -1,4 +1,4 @@
-import { useCalculator } from '@/hooks/useCalculatorState';
+import { useCalculator, type HistoryEntry } from '@/hooks/useCalculatorState';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,12 +20,12 @@ function getRelativeTime(timestamp: number): string {
 }
 
 export function HistoryView() {
-  const { history, clearHistory, setIpv6Input } = useCalculator();
+  const { history, clearHistory, restoreFromHistory } = useCalculator();
   const navigate = useNavigate();
   const [confirmClear, setConfirmClear] = useState(false);
 
-  const restoreEntry = (entry: { block: string; prefix: number }) => {
-    setIpv6Input(entry.block);
+  const restoreEntry = (entry: HistoryEntry) => {
+    restoreFromHistory(entry);
     navigate('/');
     toast.success('Cálculo restaurado');
   };

@@ -483,7 +483,79 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const restoreFromHistory = useCallback((entry: HistoryEntry) => {
+    // Set input and immediately run the full calculation
     setState(s => ({ ...s, ipv6Input: entry.block }));
+
+    // Validate and calculate
+    const errorResult = validateIPv6(entry.block);
+    if (errorResult) return;
+
+    const parts = entry.block.split('/');
+    if (parts.length !== 2 || !parts[1]) return;
+    const prefixoNum = parseInt(parts[1]);
+    const enderecoCompleto = expandIPv6Address(entry.block);
+    if (enderecoCompleto.startsWith("Erro")) return;
+
+    const gateway = calculateGateway(enderecoCompleto);
+    const mainBlock = { network: enderecoCompleto, prefix: prefixoNum };
+
+    // Move to step 2
+    setState(s => ({
+      ...s,
+      ipv6Input: entry.block,
+      currentStep: 2,
+      mainBlock,
+      mainBlockGateway: gateway,
+      subRedesGeradas: [],
+      selectedSubnetPrefix: null,
+      selectedBlock: null,
+      selectedIndices: new Set(),
+      individualSelectedIndex: null,
+      displayedCount: 0,
+      errorMessage: null,
+      errorSuggestion: null,
+      mainBlockIps: [],
+      mainBlockIpsVisible: false,
+      subnetIps: [],
+      subnetIpsVisible: false,
+      subnetIpsBlock: null,
+      aggregationResult: null,
+      comparisonResult: null,
+      aggregatedIps: [],
+      aggregatedIpsVisible: false,
+    }));
+    mainBlockIpOffsetRef.current = 0;
+    subnetIpOffsetRef.current = 0;
+    aggregatedIpOffsetRef.current = 0;
+
+    // Auto-select the subnet prefix if valid
+    if (entry.prefix > prefixoNum) {
+      // Use setTimeout to let state settle, then select prefix
+      setTimeout(() => {
+        const ipv6BigInt = BigInt("0x" + enderecoCompleto.replace(/:/g, ''));
+        const numSubRedes = 1n << BigInt(entry.prefix - prefixoNum);
+        const initialMask = ((1n << BigInt(prefixoNum)) - 1n) << (128n - BigInt(prefixoNum));
+
+        setState(s2 => ({ ...s2, isLoading: true, loadingProgress: 0, selectedSubnetPrefix: entry.prefix }));
+
+        generateTimerRef.current = setTimeout(() => {
+          try {
+            const subnets = generateSubnets(ipv6BigInt, initialMask, entry.prefix, numSubRedes);
+            setState(s3 => ({
+              ...s3,
+              currentStep: 3,
+              subRedesGeradas: subnets,
+              displayedCount: Math.min(LOAD_BATCH, subnets.length),
+              isLoading: false,
+              loadingProgress: 100,
+            }));
+          } catch {
+            setState(s3 => ({ ...s3, isLoading: false, loadingProgress: 0 }));
+          }
+          generateTimerRef.current = null;
+        }, 50);
+      }, 0);
+    }
   }, []);
 
   const clearHistory = useCallback(() => {
