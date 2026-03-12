@@ -195,16 +195,20 @@ export function PlannerView() {
         {/* Presets */}
         <div className="p-4 md:p-5 border-b border-border/60">
           <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Presets</label>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {[
               { key: 'isp' as const, icon: Globe, label: 'ISP' },
               { key: 'enterprise' as const, icon: Building2, label: 'Empresa' },
               { key: 'datacenter' as const, icon: Server, label: 'Datacenter' },
               { key: 'mobile' as const, icon: Smartphone, label: 'Mobile' },
             ].map(p => (
-              <Button key={p.key} variant="outline" size="sm" className="gap-2 h-9 text-xs" onClick={() => loadPreset(p.key)}>
-                <p.icon className="w-3.5 h-3.5" /> {p.label}
-              </Button>
+              <button
+                key={p.key}
+                onClick={() => loadPreset(p.key)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border border-border bg-secondary/40 text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+              >
+                <p.icon className="w-3 h-3" /> {p.label}
+              </button>
             ))}
           </div>
         </div>
@@ -257,11 +261,11 @@ export function PlannerView() {
         </div>
 
         {/* Actions */}
-         <div className="p-4 md:p-5 flex gap-2">
-           <Button variant="outline" size="sm" onClick={clearPlanner} className="gap-1.5 h-8 flex-[1] text-xs">
+         <div className="p-4 md:p-5 grid grid-cols-[1fr_2fr] gap-2">
+           <Button variant="outline" size="sm" onClick={clearPlanner} className="gap-1.5 h-8 text-xs w-full">
              <Trash2 className="w-3.5 h-3.5" /> Limpar
            </Button>
-           <Button size="sm" onClick={() => calculate()} className="gap-1.5 h-8 flex-[2] text-xs">
+           <Button size="sm" onClick={() => calculate()} className="gap-1.5 h-8 text-xs w-full">
              <Calculator className="w-3.5 h-3.5" /> Calcular Hierarquia
            </Button>
          </div>
@@ -396,8 +400,8 @@ export function PlannerView() {
 
       {/* Blocks Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] flex flex-col gap-3">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <TableIcon className="w-4 h-4 text-primary" />
               Blocos — {results?.[modalLevelIndex]?.label}
@@ -407,13 +411,13 @@ export function PlannerView() {
 
           {/* Level tabs */}
           {results && results.length > 1 && (
-            <div className="flex gap-1 overflow-x-auto pb-1">
+            <div className="flex gap-1 overflow-x-auto shrink-0 -mx-1 px-1">
               {results.map((l, i) => (
                 <button
                   key={`tab-${l.prefix}-${i}`}
                   onClick={() => { setModalLevelIndex(i); openBlocksModal(i); }}
                   className={cn(
-                    "px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-colors",
+                    "px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-colors shrink-0",
                     i === modalLevelIndex ? "bg-primary text-primary-foreground" : "bg-secondary/60 text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -423,7 +427,7 @@ export function PlannerView() {
             </div>
           )}
 
-          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1 shrink-0">
             <Info className="w-3 h-3" />
             Mostrando <strong>1–{modalBlocks.length}</strong> de <strong>{formatBigInt(modalTotal)}</strong> blocos
           </div>
@@ -445,7 +449,7 @@ export function PlannerView() {
           </div>
 
           {modalHasMore && (
-            <Button variant="outline" size="sm" onClick={loadMoreBlocks} className="gap-2">
+            <Button variant="outline" size="sm" onClick={loadMoreBlocks} className="gap-2 shrink-0">
               <ChevronDown className="w-3.5 h-3.5" /> Ver mais {BV_PAGE} blocos
             </Button>
           )}
