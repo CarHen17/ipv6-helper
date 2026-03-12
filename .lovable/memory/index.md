@@ -4,7 +4,7 @@ Updated: now
 Design system and architecture for IPv6 Calculator migration from vanilla JS to React.
 
 ## Design System
-- Dark navy theme matching OPEN Datacenter (core.opendata.center)
+- Dark navy theme (no branding tied to any specific company)
 - Background: hsl(215, 50%, 8%), Cards: hsl(215, 40%, 12%)
 - Primary blue: hsl(210, 100%, 50%)
 - Fonts: Inter (body), JetBrains Mono (code/IPv6 addresses)
