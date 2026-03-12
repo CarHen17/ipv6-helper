@@ -400,8 +400,8 @@ export function PlannerView() {
 
       {/* Blocks Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] flex flex-col gap-3">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center gap-2 text-sm">
               <TableIcon className="w-4 h-4 text-primary" />
               Blocos — {results?.[modalLevelIndex]?.label}
@@ -411,13 +411,13 @@ export function PlannerView() {
 
           {/* Level tabs */}
           {results && results.length > 1 && (
-            <div className="flex gap-1 overflow-x-auto pb-1">
+            <div className="flex gap-1 overflow-x-auto shrink-0 -mx-1 px-1">
               {results.map((l, i) => (
                 <button
                   key={`tab-${l.prefix}-${i}`}
                   onClick={() => { setModalLevelIndex(i); openBlocksModal(i); }}
                   className={cn(
-                    "px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-colors",
+                    "px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-colors shrink-0",
                     i === modalLevelIndex ? "bg-primary text-primary-foreground" : "bg-secondary/60 text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -427,7 +427,7 @@ export function PlannerView() {
             </div>
           )}
 
-          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1 shrink-0">
             <Info className="w-3 h-3" />
             Mostrando <strong>1–{modalBlocks.length}</strong> de <strong>{formatBigInt(modalTotal)}</strong> blocos
           </div>
@@ -449,7 +449,7 @@ export function PlannerView() {
           </div>
 
           {modalHasMore && (
-            <Button variant="outline" size="sm" onClick={loadMoreBlocks} className="gap-2">
+            <Button variant="outline" size="sm" onClick={loadMoreBlocks} className="gap-2 shrink-0">
               <ChevronDown className="w-3.5 h-3.5" /> Ver mais {BV_PAGE} blocos
             </Button>
           )}
