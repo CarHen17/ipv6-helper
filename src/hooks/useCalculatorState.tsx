@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
 import {
   type SubnetData,
   type BlockData,
@@ -281,42 +281,42 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
     }));
   }, []);
 
-  const updateAggregation = useCallback((indices: Set<number>, subnets: SubnetData[]) => {
-    if (indices.size < 2) {
-      setState(s => ({ ...s, aggregationResult: null, comparisonResult: null }));
-      return;
-    }
-    const blocks: BlockData[] = Array.from(indices).map(i => {
-      const subnet = subnets[i];
-      const [network, prefixStr] = subnet.subnet.split('/');
-      return { network, prefix: parseInt(prefixStr), subnet: subnet.subnet };
-    });
-    const result = canAggregateBlocks(blocks);
-    let comparison: ComparisonResult | null = null;
-    if (!result.canAggregate && blocks.length === 2) {
-      comparison = compareBlocks(blocks[0], blocks[1]);
-    }
-    setState(s => ({ ...s, aggregationResult: result, comparisonResult: comparison }));
-  }, []);
-
   const toggleSelectAll = useCallback(() => {
     setState(s => {
       const allSelected = s.selectedIndices.size === s.subRedesGeradas.length;
       const newIndices = allSelected ? new Set<number>() : new Set(s.subRedesGeradas.map((_, i) => i));
-      setTimeout(() => updateAggregation(newIndices, s.subRedesGeradas), 0);
-      return { ...s, selectedIndices: newIndices, individualSelectedIndex: null };
+      if (newIndices.size < 2) {
+        return { ...s, selectedIndices: newIndices, individualSelectedIndex: null, aggregationResult: null, comparisonResult: null };
+      }
+      const blocks: BlockData[] = Array.from(newIndices).map(i => {
+        const subnet = s.subRedesGeradas[i];
+        const [network, prefixStr] = subnet.subnet.split('/');
+        return { network: network!, prefix: parseInt(prefixStr), subnet: subnet.subnet };
+      });
+      const result = canAggregateBlocks(blocks);
+      const comparison: ComparisonResult | null = !result.canAggregate && blocks.length === 2 ? compareBlocks(blocks[0], blocks[1]) : null;
+      return { ...s, selectedIndices: newIndices, individualSelectedIndex: null, aggregationResult: result, comparisonResult: comparison };
     });
-  }, [updateAggregation]);
+  }, []);
 
   const toggleSelect = useCallback((index: number) => {
     setState(s => {
       const newIndices = new Set(s.selectedIndices);
       if (newIndices.has(index)) newIndices.delete(index);
       else newIndices.add(index);
-      setTimeout(() => updateAggregation(newIndices, s.subRedesGeradas), 0);
-      return { ...s, selectedIndices: newIndices };
+      if (newIndices.size < 2) {
+        return { ...s, selectedIndices: newIndices, aggregationResult: null, comparisonResult: null };
+      }
+      const blocks: BlockData[] = Array.from(newIndices).map(i => {
+        const subnet = s.subRedesGeradas[i];
+        const [network, prefixStr] = subnet.subnet.split('/');
+        return { network: network!, prefix: parseInt(prefixStr), subnet: subnet.subnet };
+      });
+      const result = canAggregateBlocks(blocks);
+      const comparison: ComparisonResult | null = !result.canAggregate && blocks.length === 2 ? compareBlocks(blocks[0], blocks[1]) : null;
+      return { ...s, selectedIndices: newIndices, aggregationResult: result, comparisonResult: comparison };
     });
-  }, [updateAggregation]);
+  }, []);
 
   const selectIndividual = useCallback((index: number) => {
     setState(s => {
@@ -422,9 +422,6 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
 
   const restoreFromHistory = useCallback((entry: HistoryEntry) => {
     setState(s => ({ ...s, ipv6Input: entry.block }));
-    setTimeout(() => {
-      // Will be triggered by the component
-    }, 100);
   }, []);
 
   const clearHistory = useCallback(() => {
@@ -448,18 +445,18 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   }, [state.subRedesGeradas]);
 
   // Compute sidebar block info
-  const sidebarBlock = state.individualSelectedIndex !== null
-    ? (() => {
-        const subnet = state.subRedesGeradas[state.individualSelectedIndex];
-        if (!subnet) return state.mainBlock;
-        const [, prefixStr] = subnet.subnet.split('/');
-        return { network: subnet.network, prefix: parseInt(prefixStr), subnet: subnet.subnet };
-      })()
-    : state.mainBlock;
+  const sidebarBlock = useMemo(() => {
+    if (state.individualSelectedIndex === null) return state.mainBlock;
+    const subnet = state.subRedesGeradas[state.individualSelectedIndex];
+    if (!subnet) return state.mainBlock;
+    const [, prefixStr] = subnet.subnet.split('/');
+    return { network: subnet.network, prefix: parseInt(prefixStr), subnet: subnet.subnet };
+  }, [state.individualSelectedIndex, state.subRedesGeradas, state.mainBlock]);
 
-  const sidebarGateway = sidebarBlock
-    ? calculateGateway(sidebarBlock.network)
-    : state.mainBlockGateway;
+  const sidebarGateway = useMemo(
+    () => (sidebarBlock ? calculateGateway(sidebarBlock.network) : state.mainBlockGateway),
+    [sidebarBlock, state.mainBlockGateway]
+  );
 
   const value: CalculatorContextType = {
     ...state,

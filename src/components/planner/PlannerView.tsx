@@ -5,11 +5,11 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
   Network, X, Plus, Trash2, Calculator, Globe, Server, Building2, Smartphone,
-  Copy, Check, ChevronDown, Info, Table as TableIcon, Loader2
+  Copy, ChevronDown, Info, Table as TableIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
-  expandIPv6Address, shortenIPv6, formatIPv6Address, ipv6ToBigInt,
+  shortenIPv6, formatIPv6Address,
   getNetworkAddress, formatBigInt
 } from '@/lib/ipv6-utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -42,22 +42,6 @@ const PRESETS = {
 
 const BV_PAGE = 50;
 
-function compressIPv6(addr: string): string {
-  const groups = addr.split(':').map(g => parseInt(g, 16).toString(16));
-  let bestStart = -1, bestLen = 0, curStart = -1, curLen = 0;
-  groups.forEach((g, i) => {
-    if (g === '0') { if (curStart < 0) curStart = i; curLen++; if (curLen > bestLen) { bestStart = curStart; bestLen = curLen; } }
-    else { curStart = -1; curLen = 0; }
-  });
-  if (bestLen < 2) return groups.join(':');
-  const before = groups.slice(0, bestStart).join(':');
-  const after = groups.slice(bestStart + bestLen).join(':');
-  if (!before && !after) return '::';
-  if (!before) return `::${after}`;
-  if (!after) return `${before}::`;
-  return `${before}::${after}`;
-}
-
 export function PlannerView() {
   const [baseBlock, setBaseBlock] = useState('');
   const [levels, setLevels] = useState<Level[]>([]);
@@ -87,9 +71,9 @@ export function PlannerView() {
     const p = PRESETS[key];
     setBaseBlock(p.base);
     setLevels(p.levels.map(l => ({ label: l.label, prefix: l.prefix })));
-    // Auto-calculate
+    // Auto-calculate with explicit args so calculate's stale closure doesn't matter
     setTimeout(() => calculate(p.base, p.levels), 0);
-  }, []);
+  }, [calculate]);
 
   const calculate = useCallback((baseVal?: string, lvls?: { label: string; prefix: number }[]) => {
     const bv = baseVal || baseBlock;
@@ -143,7 +127,7 @@ export function PlannerView() {
     for (let i = 0; i < end; i++) {
       const start = networkBase + BigInt(i) * blockSize;
       const expanded = formatIPv6Address(start);
-      items.push({ index: i + 1, cidr: `${compressIPv6(expanded)}/${level.prefix}`, label: `${level.label} ${i + 1}` });
+      items.push({ index: i + 1, cidr: `${shortenIPv6(expanded)}/${level.prefix}`, label: `${level.label} ${i + 1}` });
     }
 
     setModalBlocks(items);
@@ -165,7 +149,7 @@ export function PlannerView() {
     for (let i = modalOffset; i < endNum; i++) {
       const start = networkBase + BigInt(i) * blockSize;
       const expanded = formatIPv6Address(start);
-      items.push({ index: i + 1, cidr: `${compressIPv6(expanded)}/${level.prefix}`, label: `${level.label} ${i + 1}` });
+      items.push({ index: i + 1, cidr: `${shortenIPv6(expanded)}/${level.prefix}`, label: `${level.label} ${i + 1}` });
     }
 
     setModalBlocks(prev => [...prev, ...items]);
@@ -272,7 +256,7 @@ export function PlannerView() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
             className="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/30 text-warning text-sm flex items-start gap-2">
             <Info className="w-4 h-4 shrink-0 mt-0.5" />
-            <span dangerouslySetInnerHTML={{ __html: error }} />
+            <span>{error}</span>
           </motion.div>
         )}
       </AnimatePresence>

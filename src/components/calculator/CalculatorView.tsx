@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { StepIndicator } from './StepIndicator';
-import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, formatNumber } from '@/lib/ipv6-utils';
+import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, type SubnetData } from '@/lib/ipv6-utils';
 import { exportToCSV, exportToTXT, exportToJSON, exportToExcel, exportSubnetsToCSV } from '@/lib/export-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -25,7 +25,7 @@ export function CalculatorView() {
   const ctx = useCalculator();
   const [searchQuery, setSearchQuery] = useState('');
   const [reverseSearchIp, setReverseSearchIp] = useState('');
-  const [reverseResult, setReverseResult] = useState<any>(null);
+  const [reverseResult, setReverseResult] = useState<{ found: boolean; subnet?: SubnetData; index?: number; error?: string } | null>(null);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportTarget, setExportTarget] = useState<'main' | 'subnet' | 'aggregated'>('main');
   const [exportFilename, setExportFilename] = useState('ips_ipv6');
@@ -107,7 +107,6 @@ export function CalculatorView() {
                     "font-mono bg-secondary border-border flex-1",
                     ctx.errorMessage && "animate-shake border-destructive"
                   )}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); ctx.calcularSubRedes(); } }}
                 />
                 <Button type="submit" className="gap-2">
                   <Calculator className="w-4 h-4" />

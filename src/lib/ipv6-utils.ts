@@ -212,13 +212,10 @@ export function shortenIPv6(address: string): string {
   const prefix = groups.slice(0, bestStart);
   const suffix = groups.slice(bestStart + bestLen);
 
-  let result = '';
-  if (prefix.length > 0) result = prefix.join(':') + ':';
-  result += ':';
-  if (suffix.length > 0) result += suffix.join(':');
-
-  result = result.replace(/:{3,}/, '::');
-  return result;
+  if (prefix.length === 0 && suffix.length === 0) return '::';
+  if (prefix.length === 0) return '::' + suffix.join(':');
+  if (suffix.length === 0) return prefix.join(':') + '::';
+  return prefix.join(':') + '::' + suffix.join(':');
 }
 
 export function formatIPv6Address(ipv6BigInt: bigint): string {
