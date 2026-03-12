@@ -122,7 +122,7 @@ export function EUI64View() {
         </p>
       </div>
 
-      <div className="space-y-6 max-w-3xl">
+      <div className="space-y-6">
         {/* Input Card */}
         <motion.div
           className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-5"
