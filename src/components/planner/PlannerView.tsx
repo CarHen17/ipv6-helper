@@ -427,8 +427,8 @@ export function PlannerView() {
             </div>
           )}
 
-          <div className="text-[11px] text-muted-foreground flex items-center gap-1 shrink-0">
-            <Info className="w-3 h-3" />
+          <div className="text-xs text-muted-foreground flex items-center gap-1.5 shrink-0">
+            <Info className="w-3.5 h-3.5" />
             Mostrando <strong>1–{modalBlocks.length}</strong> de <strong>{formatBigInt(modalTotal)}</strong> blocos
           </div>
 
