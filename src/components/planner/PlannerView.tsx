@@ -216,7 +216,7 @@ export function PlannerView() {
                   placeholder="Ex: Região"
                   className="bg-secondary/60 flex-1 h-8 text-xs"
                 />
-                <span className="text-muted-foreground font-bold text-sm">/</span>
+                <span className="text-muted-foreground font-bold text-xs">/</span>
                 <Input
                   type="number"
                   value={level.prefix}
