@@ -53,7 +53,7 @@ export function AppSidebar() {
             <>
               <div className="overflow-hidden flex-1 min-w-0">
                 <h1 className="text-xs font-semibold text-sidebar-foreground truncate">Calculadora IPv6</h1>
-                <p className="text-[10px] text-muted-foreground truncate leading-tight">OPEN Datacenter</p>
+                <p className="text-[10px] text-muted-foreground truncate leading-tight">Sub-redes & Planejamento</p>
               </div>
               <button
                 onClick={toggleSidebar}
