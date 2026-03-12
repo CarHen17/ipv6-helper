@@ -178,7 +178,7 @@ export function CalculatorView() {
           <AnimatePresence>
             {ctx.currentStep === 2 && ctx.mainBlock && (
               <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5 md:p-6">
-                <h3 className="text-sm font-medium text-foreground mb-4">Escolha o prefixo para divisão:</h3>
+                <h3 className="text-xs font-medium text-foreground mb-3">Escolha o prefixo para divisão:</h3>
                 <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-11 gap-1">
                   {Array.from({ length: 128 - ctx.mainBlock.prefix }, (_, i) => ctx.mainBlock!.prefix + 1 + i).map(prefix => {
                     const isCommon = COMMON_PREFIXES[prefix];
