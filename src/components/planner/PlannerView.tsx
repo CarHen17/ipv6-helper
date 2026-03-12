@@ -304,20 +304,20 @@ export function PlannerView() {
 
             {/* Tree */}
             <div className="bg-card rounded-xl border border-border p-5">
-               <h3 className="text-xs font-medium mb-4 flex items-center gap-2">
-                 <Network className="w-3.5 h-3.5 text-primary" /> Hierarquia visual
+               <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
+                 <Network className="w-4 h-4 text-primary" /> Hierarquia visual
               </h3>
               <div className="space-y-0">
                 {/* Base node */}
-                 <div className="flex items-center gap-2.5 p-2.5 rounded-lg bg-secondary/50">
-                   <div className="w-6 h-6 rounded-md bg-primary/20 flex items-center justify-center shrink-0">
-                     <Globe className="w-3 h-3 text-primary" />
+                 <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                   <div className="w-7 h-7 rounded-md bg-primary/20 flex items-center justify-center shrink-0">
+                     <Globe className="w-3.5 h-3.5 text-primary" />
                    </div>
                    <div className="min-w-0">
-                     <div className="text-xs font-medium flex items-center gap-2">
-                       Bloco Base <code className="text-[11px] bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">{base.address}/{base.prefix}</code>
+                     <div className="text-sm font-medium flex items-center gap-2">
+                       Bloco Base <code className="text-xs bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">{base.address}/{base.prefix}</code>
                      </div>
-                     <div className="text-[10px] text-muted-foreground">{formatBigInt(2n ** BigInt(128 - base.prefix))} endereços totais</div>
+                     <div className="text-xs text-muted-foreground">{formatBigInt(2n ** BigInt(128 - base.prefix))} endereços totais</div>
                    </div>
                  </div>
 
