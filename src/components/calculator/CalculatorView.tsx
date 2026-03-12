@@ -147,7 +147,7 @@ export function CalculatorView() {
                   onChange={e => ctx.setIpv6Input(e.target.value)}
                   placeholder="Ex.: 2001:db8::/41"
                   className={cn(
-                    "font-mono bg-secondary/60 border-border/60 flex-1 h-10",
+                    "font-mono text-xs bg-secondary/60 border-border/60 flex-1 h-9",
                     ctx.errorMessage && "animate-shake border-destructive"
                   )}
                 />
