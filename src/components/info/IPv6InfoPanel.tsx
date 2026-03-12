@@ -169,19 +169,21 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
 }
 
 function BlockValidationCard({ validation }: { validation: BlockValidation }) {
+  const hasMismatch = validation.prefixMismatch && validation.announcedPrefix;
+
   return (
     <div className={cn(
       "rounded-xl border overflow-hidden",
-      validation.isAligned
+      validation.isAligned && !hasMismatch
         ? "bg-emerald-500/5 border-emerald-500/20"
         : "bg-destructive/5 border-destructive/20"
     )}>
       <div className={cn(
         "px-3 py-2 border-b",
-        validation.isAligned ? "border-emerald-500/20" : "border-destructive/20"
+        validation.isAligned && !hasMismatch ? "border-emerald-500/20" : "border-destructive/20"
       )}>
         <h3 className="text-[11px] font-medium flex items-center gap-1.5">
-          {validation.isAligned
+          {validation.isAligned && !hasMismatch
             ? <CheckCircle className="w-3 h-3 text-emerald-400" />
             : <AlertTriangle className="w-3 h-3 text-destructive" />
           }
@@ -190,16 +192,32 @@ function BlockValidationCard({ validation }: { validation: BlockValidation }) {
       </div>
       <div className="p-3 space-y-2">
         <p className="text-[11px] text-muted-foreground leading-relaxed">{validation.message}</p>
+
         {!validation.isAligned && validation.networkAddress && (
           <div className="bg-secondary/40 rounded-md p-2">
             <span className="text-[10px] text-muted-foreground block">Endereço de rede correto:</span>
             <code className="text-[11px] font-mono text-primary">{validation.networkAddress}</code>
           </div>
         )}
-        {validation.prefixMismatch && validation.announcedPrefix && (
-          <div className="bg-secondary/40 rounded-md p-2">
-            <span className="text-[10px] text-muted-foreground block">Prefixo anunciado no BGP:</span>
-            <code className="text-[11px] font-mono text-primary">{validation.announcedPrefix}</code>
+
+        {hasMismatch && (
+          <div className="bg-destructive/10 border border-destructive/20 rounded-md p-2 space-y-1.5">
+            <div className="flex items-center gap-1.5">
+              <AlertTriangle className="w-3 h-3 text-destructive shrink-0" />
+              <span className="text-[10px] font-medium text-destructive">
+                Prefixo diverge do BGP
+              </span>
+            </div>
+            <p className="text-[10px] text-muted-foreground leading-relaxed">
+              {validation.prefixMismatchType === 'shorter'
+                ? `Você digitou /${validation.prefix}, mas o BGP anuncia este espaço de endereçamento como /${validation.announcedPrefixLen} — um bloco maior. O prefixo /${validation.prefix} não existe como rota independente na tabela BGP global.`
+                : `Você digitou /${validation.prefix}, mas o BGP anuncia um bloco mais específico como /${validation.announcedPrefixLen}. O prefixo que você digitou engloba mais espaço do que o anunciado.`
+              }
+            </p>
+            <div>
+              <span className="text-[10px] text-muted-foreground block">Prefixo anunciado no BGP:</span>
+              <code className="text-[11px] font-mono text-primary">{validation.announcedPrefix}</code>
+            </div>
           </div>
         )}
       </div>

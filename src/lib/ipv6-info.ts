@@ -38,7 +38,9 @@ export interface BlockValidation {
   prefix: number;
   message: string;
   announcedPrefix?: string; // from BGP
+  announcedPrefixLen?: number; // numeric prefix length from BGP
   prefixMismatch?: boolean;
+  prefixMismatchType?: 'longer' | 'shorter'; // BGP prefix longer = more specific; shorter = you're inside a larger block
 }
 
 export interface IPv6LookupResult {
@@ -168,31 +170,28 @@ export async function lookupBGP(ip: string): Promise<BGPInfo | null> {
     
     try {
       const data = JSON.parse(text);
-      if (Array.isArray(data) && data.length > 0) {
-        const entry = data[0];
+      const entry = Array.isArray(data) ? data[0] : data;
+      if (entry && (entry.asn || entry.AS)) {
         return {
-          asn: entry.asn || '',
-          asName: entry.as_description || entry.as_name || '',
-          prefix: entry.prefix || '',
-          country: entry.country_code || '',
-        };
-      }
-      if (data.asn) {
-        return {
-          asn: data.asn || '',
-          asName: data.as_description || data.as_name || '',
-          prefix: data.prefix || '',
-          country: data.country_code || '',
+          // hackertarget may return asn as "264023" or "AS264023"
+          asn: String(entry.asn || entry.AS || '').replace(/^AS/i, ''),
+          // field name varies by API version
+          asName: entry.as_description || entry.as_name || entry.description || entry.org || '',
+          // may come back as "prefix", "bgp_prefix", or "network"
+          prefix: entry.prefix || entry.bgp_prefix || entry.network || '',
+          country: entry.country_code || entry.country || '',
         };
       }
     } catch {
-      // Parse as CSV: "IP","ASN","PREFIX","AS_NAME"
+      // Parse as plain-text CSV: "IP","ASN","PREFIX","AS_NAME"
+      // Tolerate 2-4 fields so at least ASN is returned even when prefix is missing
       const parts = text.split(',').map((s: string) => s.replace(/"/g, '').trim());
-      if (parts.length >= 4 && parts[1]) {
+      if (parts.length >= 2 && parts[1]) {
         return {
-          asn: parts[1],
+          asn: parts[1].replace(/^AS/i, ''),
           prefix: parts[2] || '',
-          asName: parts[3] || '',
+          // join remaining parts in case the AS name contained a comma
+          asName: parts.slice(3).join(', ') || '',
         };
       }
     }
@@ -350,7 +349,11 @@ export async function fullIPv6Lookup(input: string): Promise<IPv6LookupResult> {
       const bgpPrefix = bgpParts[1] ? parseInt(bgpParts[1], 10) : 0;
       if (bgpPrefix !== validation.prefix) {
         validation.announcedPrefix = bgpInfo.prefix;
+        validation.announcedPrefixLen = bgpPrefix;
         validation.prefixMismatch = true;
+        // BGP prefix shorter (e.g. /32) means the user's /20 is inside a larger block
+        // BGP prefix longer (e.g. /48) means BGP announces a more specific sub-block
+        validation.prefixMismatchType = bgpPrefix < validation.prefix ? 'shorter' : 'longer';
       }
     }
   }
