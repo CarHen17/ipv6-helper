@@ -125,12 +125,12 @@ export function CalculatorView() {
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto">
       {/* Header with inline step indicator */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
-          <h1 className="text-lg font-semibold text-foreground tracking-tight">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight">
             Calculadora de Sub-redes
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Divisão e gerenciamento de blocos IPv6</p>
+          <p className="text-sm text-muted-foreground mt-1">Divisão e gerenciamento de blocos IPv6</p>
         </div>
         <div className="w-full sm:w-auto sm:min-w-[320px]">
           <StepIndicator currentStep={ctx.currentStep} steps={STEPS} onStepClick={handleStepClick} />
