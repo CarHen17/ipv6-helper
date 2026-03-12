@@ -123,11 +123,17 @@ export function CalculatorView() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto">
+    <motion.div
+      className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+    >
       {/* Header with inline step indicator */}
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight">
+          <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+            <Calculator className="w-5 h-5 text-primary" />
             Calculadora de Sub-redes
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Divisão e gerenciamento de blocos IPv6</p>
@@ -634,7 +640,7 @@ export function CalculatorView() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }
 

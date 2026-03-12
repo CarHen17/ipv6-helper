@@ -7,6 +7,12 @@ import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useState } from 'react';
 
+const pageTransition = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+};
+
 function getRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
   const mins = Math.floor(diff / 60000);
@@ -31,13 +37,13 @@ export function HistoryView() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...pageTransition}>
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-lg font-semibold text-foreground flex items-center gap-2.5">
-            <Clock className="w-4 h-4 text-primary" /> Histórico
+          <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+            <Clock className="w-5 h-5 text-primary" /> Histórico
           </h1>
-          <p className="text-xs text-muted-foreground mt-1">Cálculos recentes · clique para restaurar</p>
+          <p className="text-sm text-muted-foreground mt-1">Cálculos recentes · clique para restaurar</p>
         </div>
         {history.length > 0 && (
           <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive" onClick={() => setConfirmClear(true)}>
@@ -100,6 +106,6 @@ export function HistoryView() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </motion.div>
   );
 }
