@@ -194,8 +194,8 @@ export function PlannerView() {
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {/* Presets */}
         <div className="p-4 md:p-5 border-b border-border/60">
-          <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Presets</label>
-          <div className="flex flex-wrap gap-1.5">
+          <label className="block text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2.5">Presets</label>
+          <div className="flex flex-wrap gap-2">
             {[
               { key: 'isp' as const, icon: Globe, label: 'ISP' },
               { key: 'enterprise' as const, icon: Building2, label: 'Empresa' },
@@ -205,9 +205,9 @@ export function PlannerView() {
               <button
                 key={p.key}
                 onClick={() => loadPreset(p.key)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border border-border bg-secondary/40 text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/40 text-muted-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors"
               >
-                <p.icon className="w-3 h-3" /> {p.label}
+                <p.icon className="w-3.5 h-3.5" /> {p.label}
               </button>
             ))}
           </div>
