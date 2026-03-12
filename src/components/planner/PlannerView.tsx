@@ -203,7 +203,7 @@ export function PlannerView() {
 
         {/* Levels */}
         <div className="p-4 md:p-5 border-b border-border/60">
-          <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2.5">Níveis</label>
+          <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Níveis</label>
           <div className="space-y-2 mb-3">
             {levels.map((level, i) => (
               <div key={i} className="flex items-center gap-2">
