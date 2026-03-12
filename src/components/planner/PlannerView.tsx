@@ -252,8 +252,8 @@ export function PlannerView() {
       <AnimatePresence>
         {error && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="mt-4 p-3.5 rounded-xl bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-[hsl(var(--warning))] text-sm flex items-start gap-2">
-            <Info className="w-4 h-4 shrink-0 mt-0.5" />
+             className="mt-4 p-3 rounded-xl bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-[hsl(var(--warning))] text-xs flex items-start gap-2">
+             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             <span>{error}</span>
           </motion.div>
         )}
