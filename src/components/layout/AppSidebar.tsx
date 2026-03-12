@@ -22,6 +22,7 @@ import {
 const navItems = [
   { path: '/', label: 'Calculadora', icon: Calculator },
   { path: '/planner', label: 'Planejador', icon: Network },
+  { path: '/eui64', label: 'EUI-64 / SLAAC', icon: Cpu },
   { path: '/history', label: 'Histórico', icon: Clock },
 ];
 

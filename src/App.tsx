@@ -24,6 +24,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/planner" element={<Planner />} />
+                <Route path="/eui64" element={<EUI64 />} />
                 <Route path="/history" element={<History />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
