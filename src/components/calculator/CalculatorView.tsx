@@ -110,11 +110,11 @@ export function CalculatorView() {
 
   const handleStepClick = (step: number) => {
     if (step < ctx.currentStep) {
-      // Navigate back to that step
       if (step === 1) {
         ctx.resetCalculadora();
+      } else {
+        ctx.goBackToStep(step);
       }
-      // Step 2 is automatic when mainBlock exists
     }
   };
 
