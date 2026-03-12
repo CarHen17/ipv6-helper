@@ -459,8 +459,8 @@ export function CalculatorView() {
                         </div>
                       ) : ctx.comparisonResult ? (
                         <div>
-                          <h4 className="text-xs font-medium flex items-center gap-1.5 mb-3">
-                            <ArrowLeftRight className="w-3.5 h-3.5 text-primary" /> Comparação
+                          <h4 className="text-sm font-medium flex items-center gap-1.5 mb-3">
+                            <ArrowLeftRight className="w-4 h-4 text-primary" /> Comparação
                           </h4>
                           <ComparisonInfo result={ctx.comparisonResult} reason={ctx.aggregationResult.reason} />
                         </div>
