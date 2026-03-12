@@ -47,22 +47,22 @@ export function AppSidebar() {
             <button
               onClick={collapsed ? toggleSidebar : undefined}
               className={cn(
-                "w-7 h-7 rounded-md bg-primary/20 flex items-center justify-center shrink-0 transition-all duration-200",
+                "w-8 h-8 rounded-md bg-primary/20 flex items-center justify-center shrink-0 transition-all duration-200",
                 collapsed && "hover:bg-primary/30 cursor-pointer hover:scale-105"
               )}
               title={collapsed ? 'Expandir menu' : undefined}
             >
               {collapsed ? (
-                <PanelLeft className="w-3.5 h-3.5 text-primary" />
+                <PanelLeft className="w-4 h-4 text-primary" />
               ) : (
-                <Globe className="w-3.5 h-3.5 text-primary" />
+                <Globe className="w-4 h-4 text-primary" />
               )}
             </button>
             {!collapsed && (
               <>
                 <div className="overflow-hidden flex-1 min-w-0">
-                  <h1 className="text-xs font-semibold text-sidebar-foreground truncate">Calculadora IPv6</h1>
-                  <p className="text-[10px] text-muted-foreground truncate leading-tight">Sub-redes & Planejamento</p>
+                  <h1 className="text-sm font-semibold text-sidebar-foreground truncate">Calculadora IPv6</h1>
+                  <p className="text-xs text-muted-foreground truncate leading-tight">Sub-redes & Planejamento</p>
                 </div>
                 <button
                   onClick={toggleSidebar}
