@@ -155,7 +155,7 @@ export function OverlapView() {
     : 0;
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto">
+    <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...fadeUp}>
       <div className="mb-8">
         <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-primary" />
