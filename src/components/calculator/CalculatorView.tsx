@@ -186,7 +186,14 @@ export function CalculatorView() {
                     return (
                       <button
                         key={prefix}
-                        onClick={() => ctx.selecionarPrefixo(prefix)}
+                         onClick={() => {
+                           const count = ctx.getSubnetCount(prefix);
+                           if (count && count > 1000000n) {
+                             setConfirmPrefix({ prefix, count });
+                           } else {
+                             ctx.selecionarPrefixo(prefix);
+                           }
+                         }}
                         className={cn(
                           "py-1.5 rounded text-[11px] font-mono font-medium transition-all duration-150 border text-center",
                           isCommon
