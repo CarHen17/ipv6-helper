@@ -201,22 +201,22 @@ function BlockValidationCard({ validation }: { validation: BlockValidation }) {
         )}
 
         {hasMismatch && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-md p-2 space-y-1.5">
+          <div className="bg-destructive/10 border border-destructive/20 rounded-md p-2.5 space-y-1.5">
             <div className="flex items-center gap-1.5">
-              <AlertTriangle className="w-3 h-3 text-destructive shrink-0" />
-              <span className="text-[10px] font-medium text-destructive">
+              <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />
+              <span className="text-xs font-medium text-destructive">
                 Prefixo diverge do BGP
               </span>
             </div>
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               {validation.prefixMismatchType === 'shorter'
                 ? `Você digitou /${validation.prefix}, mas o BGP anuncia este espaço de endereçamento como /${validation.announcedPrefixLen} — um bloco maior. O prefixo /${validation.prefix} não existe como rota independente na tabela BGP global.`
                 : `Você digitou /${validation.prefix}, mas o BGP anuncia um bloco mais específico como /${validation.announcedPrefixLen}. O prefixo que você digitou engloba mais espaço do que o anunciado.`
               }
             </p>
             <div>
-              <span className="text-[10px] text-muted-foreground block">Prefixo anunciado no BGP:</span>
-              <code className="text-[11px] font-mono text-primary">{validation.announcedPrefix}</code>
+              <span className="text-xs text-muted-foreground block">Prefixo anunciado no BGP:</span>
+              <code className="text-sm font-mono text-primary">{validation.announcedPrefix}</code>
             </div>
           </div>
         )}
