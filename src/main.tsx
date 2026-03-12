@@ -4,7 +4,7 @@ import "./index.css";
 
 // Apply saved theme before render to avoid flash
 const savedTheme = localStorage.getItem('ipv6calc_theme');
-if (savedTheme !== 'light') {
+if (savedTheme === 'dark') {
   document.documentElement.classList.add('dark');
 }
 
