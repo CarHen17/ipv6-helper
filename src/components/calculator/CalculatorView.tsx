@@ -138,7 +138,7 @@ export function CalculatorView() {
           {/* Step 1: Input */}
           <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6" layout>
             <form onSubmit={handleCalcSubmit}>
-              <label className="block text-sm font-medium text-foreground mb-3">
+              <label className="block text-xs font-medium text-foreground mb-2.5">
                 Insira um endereço IPv6 no formato CIDR:
               </label>
               <div className="flex gap-3">
