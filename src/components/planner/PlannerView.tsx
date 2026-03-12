@@ -71,9 +71,10 @@ export function PlannerView() {
     const p = PRESETS[key];
     setBaseBlock(p.base);
     setLevels(p.levels.map(l => ({ label: l.label, prefix: l.prefix })));
-    // Auto-calculate with explicit args so calculate's stale closure doesn't matter
+    // Auto-calculate: passes explicit args, so calculate's closure values don't matter.
+    // Keep dep array empty to avoid Temporal Dead Zone — loadPreset is declared before calculate.
     setTimeout(() => calculate(p.base, p.levels), 0);
-  }, [calculate]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const calculate = useCallback((baseVal?: string, lvls?: { label: string; prefix: number }[]) => {
     const bv = baseVal || baseBlock;
