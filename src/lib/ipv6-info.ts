@@ -31,12 +31,23 @@ export interface RDAPInfo {
   entities?: { name: string; roles: string[] }[];
 }
 
+export interface BlockValidation {
+  isAligned: boolean;
+  networkAddress: string;
+  inputAddress: string;
+  prefix: number;
+  message: string;
+  announcedPrefix?: string; // from BGP
+  prefixMismatch?: boolean;
+}
+
 export interface IPv6LookupResult {
   input: string;
   isValid: boolean;
   typeInfo: IPv6TypeInfo;
   bgpInfo?: BGPInfo;
   rdapInfo?: RDAPInfo;
+  validation?: BlockValidation;
   error?: string;
 }
 
