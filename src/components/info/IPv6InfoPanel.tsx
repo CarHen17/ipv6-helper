@@ -320,14 +320,14 @@ function RDAPInfoCard({ rdapInfo }: { rdapInfo: NonNullable<IPv6LookupResult['rd
           </div>
         )}
         {rdapInfo.entities && rdapInfo.entities.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-border/40">
-            <span className="text-[10px] text-muted-foreground block mb-1">Entidades</span>
+          <div className="mt-2.5 pt-2.5 border-t border-border/40">
+            <span className="text-xs text-muted-foreground block mb-1.5">Entidades</span>
             {rdapInfo.entities.map((e, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-[11px]">
-                <Users className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
+              <div key={i} className="flex items-center gap-1.5 text-sm">
+                <Users className="w-3 h-3 text-muted-foreground shrink-0" />
                 <span className="text-foreground">{e.name}</span>
                 {e.roles.length > 0 && (
-                  <span className="text-muted-foreground text-[9px]">({e.roles.join(', ')})</span>
+                  <span className="text-muted-foreground text-[10px]">({e.roles.join(', ')})</span>
                 )}
               </div>
             ))}
