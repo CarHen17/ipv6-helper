@@ -168,24 +168,28 @@ export function EUI64View() {
             </div>
           </div>
 
-          {/* Quick fills */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground font-medium mr-1">Exemplos:</span>
-            {[
-              { mac: '00:1A:2B:3C:4D:5E', prefix: '2001:db8::' },
-              { mac: 'AA:BB:CC:DD:EE:FF', prefix: '2001:db8::' },
-              { mac: '02:42:AC:11:00:02', prefix: 'fd00::' },
-            ].map((ex, i) => (
-              <button
-                key={i}
-                onClick={() => { setMacInput(ex.mac); setPrefixInput(ex.prefix); }}
-                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border transition-all"
-              >
-                <Zap className="w-3 h-3 text-primary/60" />
-                <span className="font-mono">{ex.mac}</span>
-              </button>
-            ))}
-          </div>
+          {/* Quick fills — collapsible */}
+          <details className="group">
+            <summary className="text-xs text-muted-foreground font-medium cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center gap-1">
+              <Zap className="w-3 h-3 text-primary/60" />
+              Preencher com exemplo
+            </summary>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {[
+                { mac: '00:1A:2B:3C:4D:5E', prefix: '2001:db8::' },
+                { mac: 'AA:BB:CC:DD:EE:FF', prefix: '2001:db8::' },
+                { mac: '02:42:AC:11:00:02', prefix: 'fd00::' },
+              ].map((ex, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setMacInput(ex.mac); setPrefixInput(ex.prefix); }}
+                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border transition-all"
+                >
+                  <span className="font-mono">{ex.mac}</span>
+                </button>
+              ))}
+            </div>
+          </details>
 
           {/* Error */}
           <AnimatePresence>
