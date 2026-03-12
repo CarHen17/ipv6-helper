@@ -52,7 +52,7 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-card border-border">
         <SheetHeader className="pb-4">
-          <SheetTitle className="text-sm font-semibold flex items-center gap-2">
+          <SheetTitle className="text-base font-semibold flex items-center gap-2">
             <Info className="w-4 h-4 text-primary" />
             Informações do Bloco IPv6
           </SheetTitle>
