@@ -57,7 +57,8 @@ interface CalculatorState {
 interface CalculatorContextType extends CalculatorState {
   setIpv6Input: (val: string) => void;
   calcularSubRedes: () => boolean;
-  selecionarPrefixo: (prefix: number) => void;
+  selecionarPrefixo: (prefix: number, skipConfirm?: boolean) => void;
+  getSubnetCount: (prefix: number) => bigint | null;
   resetCalculadora: () => void;
   goBackToStep: (step: number) => void;
   loadMore: () => void;
