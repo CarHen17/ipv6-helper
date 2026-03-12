@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
 import EUI64 from "./pages/EUI64";
+import Overlap from "./pages/Overlap";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
                 <Route path="/" element={<Index />} />
                 <Route path="/planner" element={<Planner />} />
                 <Route path="/eui64" element={<EUI64 />} />
+                <Route path="/overlap" element={<Overlap />} />
                 <Route path="/history" element={<History />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

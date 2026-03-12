@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu } from 'lucide-react';
+import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { useTheme } from '@/hooks/useTheme';
@@ -23,6 +23,7 @@ const navItems = [
   { path: '/', label: 'Calculadora', icon: Calculator },
   { path: '/planner', label: 'Planejador', icon: Network },
   { path: '/eui64', label: 'EUI-64 / SLAAC', icon: Cpu },
+  { path: '/overlap', label: 'Sobreposição', icon: ShieldCheck },
   { path: '/history', label: 'Histórico', icon: Clock },
 ];
 
