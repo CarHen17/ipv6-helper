@@ -491,7 +491,7 @@ export function CalculatorView() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <p className="text-xs text-muted-foreground">Encontre a qual sub-rede um endereço IPv6 pertence.</p>
+            <p className="text-sm text-muted-foreground">Encontre a qual sub-rede um endereço IPv6 pertence.</p>
             <div className="flex gap-2">
               <Input
                 value={reverseSearchIp}
