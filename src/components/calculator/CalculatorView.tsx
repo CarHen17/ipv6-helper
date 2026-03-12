@@ -683,10 +683,10 @@ function ComparisonInfo({ result, reason }: { result: ComparisonResult; reason: 
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-foreground">{labels[result.relationship] || 'Relação desconhecida'}</p>
-      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20">
-        <TriangleAlert className="w-3.5 h-3.5 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
-        <p className="text-xs text-muted-foreground">{reason}</p>
+      <p className="text-sm text-foreground">{labels[result.relationship] || 'Relação desconhecida'}</p>
+      <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20">
+        <TriangleAlert className="w-4 h-4 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
+        <p className="text-sm text-muted-foreground">{reason}</p>
       </div>
     </div>
   );
