@@ -165,11 +165,11 @@ export function PlannerView() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-3">
-          <Network className="w-5 h-5 text-primary" /> Planejador Hierárquico
+      <div className="mb-6">
+        <h1 className="text-lg font-semibold text-foreground flex items-center gap-2.5">
+          <Network className="w-4 h-4 text-primary" /> Planejador Hierárquico
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Planeje hierarquias multi-nível de endereçamento IPv6</p>
+        <p className="text-xs text-muted-foreground mt-1">Planeje hierarquias multi-nível de endereçamento IPv6</p>
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
