@@ -597,6 +597,43 @@ export function CalculatorView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Large subnet confirmation dialog */}
+      <Dialog open={!!confirmPrefix} onOpenChange={(open) => { if (!open) setConfirmPrefix(null); }}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <AlertTriangle className="w-4 h-4 text-[hsl(var(--warning))]" />
+              Grande quantidade de sub-redes
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              O prefixo <code className="font-mono text-primary">/{confirmPrefix?.prefix}</code> gerará{' '}
+              <span className="font-semibold text-foreground">{confirmPrefix?.count?.toLocaleString('pt-BR')}</span> sub-redes.
+            </p>
+            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20">
+              <Info className="w-3.5 h-3.5 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
+              <p className="text-[11px] text-muted-foreground">
+                Por questões de desempenho, apenas <span className="font-medium text-foreground">100.000</span> sub-redes serão geradas como amostra.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => setConfirmPrefix(null)}>
+                Cancelar
+              </Button>
+              <Button size="sm" className="flex-1 text-xs h-8" onClick={() => {
+                if (confirmPrefix) {
+                  ctx.selecionarPrefixo(confirmPrefix.prefix, true);
+                }
+                setConfirmPrefix(null);
+              }}>
+                Continuar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
