@@ -31,7 +31,7 @@ export function StepIndicator({ currentStep, steps, onStepClick }: StepIndicator
             >
               <motion.div
                 className={cn(
-                  "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 shrink-0",
+                  "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 shrink-0",
                   isCompleted && "bg-primary text-primary-foreground",
                   isActive && "bg-primary text-primary-foreground shadow-sm shadow-primary/25",
                   !isActive && !isCompleted && "bg-muted text-muted-foreground"
