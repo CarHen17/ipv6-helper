@@ -20,7 +20,7 @@ function getRelativeTime(timestamp: number): string {
 }
 
 export function HistoryView() {
-  const { history, clearHistory, setIpv6Input } = useCalculator();
+  const { history, clearHistory, restoreFromHistory } = useCalculator();
   const navigate = useNavigate();
   const [confirmClear, setConfirmClear] = useState(false);
 
