@@ -7,6 +7,7 @@ import { CalculatorProvider } from "@/hooks/useCalculatorState";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
+import EUI64 from "./pages/EUI64";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/planner" element={<Planner />} />
+                <Route path="/eui64" element={<EUI64 />} />
                 <Route path="/history" element={<History />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
