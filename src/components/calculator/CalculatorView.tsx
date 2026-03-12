@@ -468,8 +468,8 @@ export function CalculatorView() {
                         <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-sm">
                           <TriangleAlert className="w-4 h-4 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-medium text-[hsl(var(--warning))] text-xs">Agregação não possível</p>
-                            <p className="text-xs text-muted-foreground mt-1">{ctx.aggregationResult.reason}</p>
+                            <p className="font-medium text-[hsl(var(--warning))] text-sm">Agregação não possível</p>
+                            <p className="text-sm text-muted-foreground mt-1">{ctx.aggregationResult.reason}</p>
                           </div>
                         </div>
                       )}
