@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { StepIndicator } from './StepIndicator';
-import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, type SubnetData, type ComparisonResult } from '@/lib/ipv6-utils';
+import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, IPV6_CONFIG, type SubnetData, type ComparisonResult } from '@/lib/ipv6-utils';
 import { exportToCSV, exportToTXT, exportToJSON, exportToExcel, exportSubnetsToCSV } from '@/lib/export-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -27,6 +27,13 @@ const fadeUp = {
   exit: { opacity: 0, y: -10 },
   transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
 };
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text).then(
+    () => toast.success('Copiado!'),
+    () => toast.error('Falha ao copiar para a área de transferência')
+  );
+}
 
 export function CalculatorView() {
   const ctx = useCalculator();
@@ -76,10 +83,6 @@ export function CalculatorView() {
     }
     const result = ctx.reverseSearch(reverseSearchIp.trim());
     setReverseResult(result);
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => toast.success('Copiado!'));
   };
 
   const handleExport = (format: string) => {
@@ -175,7 +178,7 @@ export function CalculatorView() {
             </form>
           </motion.div>
 
-          {/* Step 2: Prefix Selection — clean grid (hidden once subnets are generated) */}
+          {/* Step 2: Prefix Selection */}
           <AnimatePresence>
             {ctx.currentStep === 2 && ctx.mainBlock && (
               <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5 md:p-6">
@@ -188,7 +191,7 @@ export function CalculatorView() {
                         key={prefix}
                          onClick={() => {
                            const count = ctx.getSubnetCount(prefix);
-                           if (count && count > 1000000n) {
+                           if (count && count > IPV6_CONFIG.LARGE_SUBNET_THRESHOLD) {
                              setConfirmPrefix({ prefix, count });
                            } else {
                              ctx.selecionarPrefixo(prefix);
@@ -242,10 +245,7 @@ export function CalculatorView() {
                       size="sm"
                       variant="ghost"
                       className="text-xs gap-1.5 h-7 text-muted-foreground hover:text-primary"
-                      onClick={() => {
-                        // Go back to step 2 (prefix selection) keeping the block
-                        handleStepClick(2);
-                      }}
+                      onClick={() => handleStepClick(2)}
                     >
                       <RotateCcw className="w-3 h-3" />
                       Novo cálculo
@@ -615,7 +615,7 @@ export function CalculatorView() {
             <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20">
               <Info className="w-3.5 h-3.5 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
               <p className="text-[11px] text-muted-foreground">
-                Por questões de desempenho, apenas <span className="font-medium text-foreground">100.000</span> sub-redes serão geradas como amostra.
+                Por questões de desempenho, apenas <span className="font-medium text-foreground">{IPV6_CONFIG.MAX_SUBNETS_GENERATION.toLocaleString('pt-BR')}</span> sub-redes serão geradas como amostra.
               </p>
             </div>
             <div className="flex gap-2 pt-1">

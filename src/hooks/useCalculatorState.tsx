@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import {
   type SubnetData,
   type BlockData,
@@ -14,6 +14,8 @@ import {
   canAggregateBlocks,
   compareBlocks,
   findSubnetForIP,
+  buildBlocksFromIndices,
+  IPV6_CONFIG,
   type ComparisonResult,
 } from '@/lib/ipv6-utils';
 
@@ -92,7 +94,8 @@ const LOAD_BATCH = 100;
 function loadHistoryFromStorage(): HistoryEntry[] {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  } catch {
+  } catch (e) {
+    console.warn('[IPv6Calc] Falha ao carregar histórico do localStorage:', e);
     return [];
   }
 }
@@ -100,7 +103,9 @@ function loadHistoryFromStorage(): HistoryEntry[] {
 function saveHistoryToStorage(history: HistoryEntry[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
-  } catch {}
+  } catch (e) {
+    console.warn('[IPv6Calc] Falha ao salvar histórico no localStorage (quota excedida ou modo privado):', e);
+  }
 }
 
 export function CalculatorProvider({ children }: { children: React.ReactNode }) {
@@ -134,6 +139,16 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   const mainBlockIpOffsetRef = useRef(0);
   const subnetIpOffsetRef = useRef(0);
   const aggregatedIpOffsetRef = useRef(0);
+  const generateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (generateTimerRef.current !== null) {
+        clearTimeout(generateTimerRef.current);
+      }
+    };
+  }, []);
 
   const setIpv6Input = useCallback((val: string) => {
     setState(s => ({ ...s, ipv6Input: val, errorMessage: null, errorSuggestion: null }));
@@ -147,15 +162,18 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
       return false;
     }
 
-    const [, prefixoInicial] = inputValue.split('/');
-    const prefixoNum = parseInt(prefixoInicial);
+    const parts = inputValue.split('/');
+    if (parts.length !== 2 || !parts[1]) {
+      setState(s => ({ ...s, errorMessage: 'Formato CIDR inválido', errorSuggestion: null }));
+      return false;
+    }
+    const prefixoNum = parseInt(parts[1]);
     const enderecoCompleto = expandIPv6Address(inputValue);
     if (enderecoCompleto.startsWith("Erro")) {
       setState(s => ({ ...s, errorMessage: enderecoCompleto, errorSuggestion: null }));
       return false;
     }
 
-    const enderecoFormatado = shortenIPv6(enderecoCompleto);
     const gateway = calculateGateway(enderecoCompleto);
 
     setState(s => ({
@@ -196,9 +214,15 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
     const ipv6BigInt = BigInt("0x" + enderecoCompleto.replace(/:/g, ''));
     const numSubRedes = 1n << BigInt(prefix - prefixoNum);
 
-    if (numSubRedes > 1000000n && !skipConfirm) {
+    if (numSubRedes > IPV6_CONFIG.LARGE_SUBNET_THRESHOLD && !skipConfirm) {
       // Let the view handle confirmation
       return;
+    }
+
+    // Cancel any pending generation
+    if (generateTimerRef.current !== null) {
+      clearTimeout(generateTimerRef.current);
+      generateTimerRef.current = null;
     }
 
     // Capture values before setTimeout to avoid stale closure reads
@@ -207,42 +231,60 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
 
     setState(prev => ({ ...prev, isLoading: true, loadingProgress: 0, currentStep: 3, selectedSubnetPrefix: prefix }));
 
-    setTimeout(() => {
-      const initialMask = ((1n << BigInt(prefixoNum)) - 1n) << (128n - BigInt(prefixoNum));
-      const subnets = generateSubnets(ipv6BigInt, initialMask, prefix, numSubRedes, (percent) => {
-        setState(prev => ({ ...prev, loadingProgress: percent }));
-      });
+    generateTimerRef.current = setTimeout(() => {
+      try {
+        const initialMask = ((1n << BigInt(prefixoNum)) - 1n) << (128n - BigInt(prefixoNum));
+        const subnets = generateSubnets(ipv6BigInt, initialMask, prefix, numSubRedes, (percent) => {
+          setState(prev => ({ ...prev, loadingProgress: percent }));
+        });
 
-      // Add to history using values captured before setTimeout
-      const newHistory = [...currentHistory];
-      const entry: HistoryEntry = {
-        block: ipv6Input,
-        prefix,
-        timestamp: Date.now(),
-        subnetCount: subnets.length,
-      };
-      if (newHistory.length === 0 || newHistory[0].block !== entry.block || newHistory[0].prefix !== entry.prefix) {
-        newHistory.unshift(entry);
-        if (newHistory.length > MAX_HISTORY) newHistory.splice(MAX_HISTORY);
-        saveHistoryToStorage(newHistory);
+        // Add to history
+        const newHistory = [...currentHistory];
+        const entry: HistoryEntry = {
+          block: ipv6Input,
+          prefix,
+          timestamp: Date.now(),
+          subnetCount: subnets.length,
+        };
+        if (newHistory.length === 0 || newHistory[0].block !== entry.block || newHistory[0].prefix !== entry.prefix) {
+          newHistory.unshift(entry);
+          if (newHistory.length > MAX_HISTORY) newHistory.splice(MAX_HISTORY);
+          saveHistoryToStorage(newHistory);
+        }
+
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          loadingProgress: 100,
+          subRedesGeradas: subnets,
+          displayedCount: Math.min(LOAD_BATCH, subnets.length),
+          selectedIndices: new Set(),
+          individualSelectedIndex: null,
+          history: newHistory,
+          aggregationResult: null,
+          comparisonResult: null,
+        }));
+      } catch (error) {
+        console.error('[IPv6Calc] Erro ao gerar sub-redes:', error);
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          loadingProgress: 0,
+          errorMessage: 'Erro ao gerar sub-redes. Tente novamente.',
+          errorSuggestion: null,
+        }));
+      } finally {
+        generateTimerRef.current = null;
       }
-
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        loadingProgress: 100,
-        subRedesGeradas: subnets,
-        displayedCount: Math.min(LOAD_BATCH, subnets.length),
-        selectedIndices: new Set(),
-        individualSelectedIndex: null,
-        history: newHistory,
-        aggregationResult: null,
-        comparisonResult: null,
-      }));
     }, 50);
   }, [state.mainBlock, state.ipv6Input, state.history]);
 
   const resetCalculadora = useCallback(() => {
+    // Cancel any pending generation
+    if (generateTimerRef.current !== null) {
+      clearTimeout(generateTimerRef.current);
+      generateTimerRef.current = null;
+    }
     setState(s => ({
       ...s,
       currentStep: 1,
@@ -308,52 +350,45 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
     }));
   }, []);
 
+  const computeAggregation = useCallback((newIndices: Set<number>, subRedes: SubnetData[]) => {
+    if (newIndices.size < 2) {
+      return { aggregationResult: null, comparisonResult: null };
+    }
+    const blocks = buildBlocksFromIndices(subRedes, newIndices);
+    const result = canAggregateBlocks(blocks);
+    const comparison: ComparisonResult | null = !result.canAggregate && blocks.length === 2 ? compareBlocks(blocks[0], blocks[1]) : null;
+    return { aggregationResult: result, comparisonResult: comparison };
+  }, []);
+
   const toggleSelectAll = useCallback(() => {
     setState(s => {
       const allSelected = s.selectedIndices.size === s.subRedesGeradas.length;
       const newIndices = allSelected ? new Set<number>() : new Set(s.subRedesGeradas.map((_, i) => i));
-      if (newIndices.size < 2) {
-        return { ...s, selectedIndices: newIndices, individualSelectedIndex: null, aggregationResult: null, comparisonResult: null };
-      }
-      const blocks: BlockData[] = Array.from(newIndices).map(i => {
-        const subnet = s.subRedesGeradas[i];
-        const [network, prefixStr] = subnet.subnet.split('/');
-        return { network: network!, prefix: parseInt(prefixStr), subnet: subnet.subnet };
-      });
-      const result = canAggregateBlocks(blocks);
-      const comparison: ComparisonResult | null = !result.canAggregate && blocks.length === 2 ? compareBlocks(blocks[0], blocks[1]) : null;
-      return { ...s, selectedIndices: newIndices, individualSelectedIndex: null, aggregationResult: result, comparisonResult: comparison };
+      const { aggregationResult, comparisonResult } = computeAggregation(newIndices, s.subRedesGeradas);
+      return { ...s, selectedIndices: newIndices, individualSelectedIndex: null, aggregationResult, comparisonResult };
     });
-  }, []);
+  }, [computeAggregation]);
 
   const toggleSelect = useCallback((index: number) => {
     setState(s => {
       const newIndices = new Set(s.selectedIndices);
       if (newIndices.has(index)) newIndices.delete(index);
       else newIndices.add(index);
-      if (newIndices.size < 2) {
-        return { ...s, selectedIndices: newIndices, aggregationResult: null, comparisonResult: null };
-      }
-      const blocks: BlockData[] = Array.from(newIndices).map(i => {
-        const subnet = s.subRedesGeradas[i];
-        const [network, prefixStr] = subnet.subnet.split('/');
-        return { network: network!, prefix: parseInt(prefixStr), subnet: subnet.subnet };
-      });
-      const result = canAggregateBlocks(blocks);
-      const comparison: ComparisonResult | null = !result.canAggregate && blocks.length === 2 ? compareBlocks(blocks[0], blocks[1]) : null;
-      return { ...s, selectedIndices: newIndices, aggregationResult: result, comparisonResult: comparison };
+      const { aggregationResult, comparisonResult } = computeAggregation(newIndices, s.subRedesGeradas);
+      return { ...s, selectedIndices: newIndices, aggregationResult, comparisonResult };
     });
-  }, []);
+  }, [computeAggregation]);
 
   const selectIndividual = useCallback((index: number) => {
     setState(s => {
       const subnet = s.subRedesGeradas[index];
       if (!subnet) return s;
-      const [network, prefixStr] = subnet.subnet.split('/');
+      const parts = subnet.subnet.split('/');
+      if (parts.length !== 2 || !parts[1]) return s;
       return {
         ...s,
         individualSelectedIndex: index,
-        selectedBlock: { network: subnet.network, prefix: parseInt(prefixStr), subnet: subnet.subnet, initial: subnet.initial, final: subnet.final, index },
+        selectedBlock: { network: subnet.network, prefix: parseInt(parts[1]), subnet: subnet.subnet, initial: subnet.initial, final: subnet.final, index },
       };
     });
   }, []);
@@ -452,7 +487,11 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   const clearHistory = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('[IPv6Calc] Falha ao limpar histórico:', e);
+    }
     setState(s => ({ ...s, history: [] }));
   }, []);
 
@@ -476,8 +515,9 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
     if (state.individualSelectedIndex === null) return state.mainBlock;
     const subnet = state.subRedesGeradas[state.individualSelectedIndex];
     if (!subnet) return state.mainBlock;
-    const [, prefixStr] = subnet.subnet.split('/');
-    return { network: subnet.network, prefix: parseInt(prefixStr), subnet: subnet.subnet };
+    const parts = subnet.subnet.split('/');
+    if (parts.length !== 2 || !parts[1]) return state.mainBlock;
+    return { network: subnet.network, prefix: parseInt(parts[1]), subnet: subnet.subnet };
   }, [state.individualSelectedIndex, state.subRedesGeradas, state.mainBlock]);
 
   const sidebarGateway = useMemo(

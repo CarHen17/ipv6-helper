@@ -4,6 +4,8 @@ import { Clock, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState } from 'react';
 
 function getRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
@@ -20,6 +22,7 @@ function getRelativeTime(timestamp: number): string {
 export function HistoryView() {
   const { history, clearHistory, setIpv6Input } = useCalculator();
   const navigate = useNavigate();
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const restoreEntry = (entry: { block: string; prefix: number }) => {
     setIpv6Input(entry.block);
@@ -37,7 +40,7 @@ export function HistoryView() {
           <p className="text-xs text-muted-foreground mt-1">Cálculos recentes · clique para restaurar</p>
         </div>
         {history.length > 0 && (
-          <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive" onClick={() => { if (confirm('Apagar todo o histórico?')) { clearHistory(); toast.info('Histórico apagado'); } }}>
+          <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive" onClick={() => setConfirmClear(true)}>
             <Trash2 className="w-3.5 h-3.5" /> Limpar
           </Button>
         )}
@@ -75,6 +78,28 @@ export function HistoryView() {
           </AnimatePresence>
         </div>
       )}
+
+      {/* Confirm clear dialog */}
+      <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-sm">Apagar histórico?</DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground">Todos os {history.length} registros serão removidos permanentemente.</p>
+          <div className="flex gap-2 pt-2">
+            <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => setConfirmClear(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" size="sm" className="flex-1 text-xs h-8" onClick={() => {
+              clearHistory();
+              setConfirmClear(false);
+              toast.info('Histórico apagado');
+            }}>
+              Apagar tudo
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

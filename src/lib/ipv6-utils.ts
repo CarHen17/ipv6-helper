@@ -4,9 +4,11 @@
  */
 
 export const IPV6_CONFIG = {
-  MAX_SUBNETS_GENERATION: 100000,
+  MAX_SUBNETS_GENERATION: 100_000,
   CHUNK_SIZE: 1000,
   PROGRESS_UPDATE_INTERVAL: 500,
+  /** Threshold above which user confirmation is requested */
+  LARGE_SUBNET_THRESHOLD: 1_000_000n,
 };
 
 export interface ValidationError {
@@ -56,12 +58,12 @@ export interface ComparisonResult {
 
 export function formatNumber(num: number | bigint): string {
   try {
-    const n = typeof num === 'bigint' ? Number(num) : num;
-    if (n <= 99999) return n.toLocaleString('pt-BR');
-    if (n < 1000000) return `${Math.round(n / 1000)}K`;
-    if (n < 1000000000) return `${(n / 1000000).toFixed(1)}M`;
-    if (n < 1000000000000) return `${(n / 1000000000).toFixed(1)}B`;
-    return `${(n / 1000000000000).toFixed(1)}T`;
+    if (typeof num === 'bigint') return formatBigInt(num);
+    if (num <= 99999) return num.toLocaleString('pt-BR');
+    if (num < 1e6) return `${Math.round(num / 1000)}K`;
+    if (num < 1e9) return `${(num / 1e6).toFixed(1)}M`;
+    if (num < 1e12) return `${(num / 1e9).toFixed(1)}B`;
+    return `${(num / 1e12).toFixed(1)}T`;
   } catch {
     return num.toString();
   }
@@ -69,10 +71,15 @@ export function formatNumber(num: number | bigint): string {
 
 export function formatBigInt(n: bigint): string {
   if (n < 1000n) return n.toLocaleString('pt-BR');
-  if (n < 1000000n) return `${(Number(n) / 1000).toFixed(1)}K`;
-  if (n < 1000000000n) return `${(Number(n) / 1e6).toFixed(1)}M`;
-  if (n < 1000000000000n) return `${(Number(n) / 1e9).toFixed(1)}B`;
-  if (n < 1000000000000000n) return `${(Number(n) / 1e12).toFixed(1)}T`;
+  // For values that fit safely in Number (< 2^53), use Number formatting
+  if (n < 9007199254740992n) {
+    const num = Number(n);
+    if (num < 1e6) return `${(num / 1000).toFixed(1)}K`;
+    if (num < 1e9) return `${(num / 1e6).toFixed(1)}M`;
+    if (num < 1e12) return `${(num / 1e9).toFixed(1)}B`;
+    if (num < 1e15) return `${(num / 1e12).toFixed(1)}T`;
+  }
+  // For values beyond Number.MAX_SAFE_INTEGER, use string-based formatting
   const s = n.toString();
   const exp = s.length - 1;
   const mantissa = (Number(s.slice(0, 5)) / 10000).toFixed(2);
@@ -221,7 +228,8 @@ export function shortenIPv6(address: string): string {
 export function formatIPv6Address(ipv6BigInt: bigint): string {
   try {
     const hexStr = ipv6BigInt.toString(16).padStart(32, '0');
-    return hexStr.match(/.{1,4}/g)!.join(':');
+    const groups = hexStr.match(/.{1,4}/g);
+    return groups ? groups.join(':') : "0000:0000:0000:0000:0000:0000:0000:0000";
   } catch {
     return "0000:0000:0000:0000:0000:0000:0000:0000";
   }
@@ -350,11 +358,14 @@ export function findSubnetForIP(ip: string, subnets: SubnetData[]): { found: boo
   try {
     const expandedIp = expandIPv6Address(ip.includes('/') ? ip : ip + '/128');
     if (expandedIp.startsWith('Erro')) return { found: false, error: 'Endereço IP inválido: ' + expandedIp };
-    const ipBigInt = ipv6ToBigInt(expandedIp.split('/')[0] || expandedIp);
+    const ipPart = expandedIp.split('/')[0];
+    if (!ipPart) return { found: false, error: 'Endereço IP inválido' };
+    const ipBigInt = ipv6ToBigInt(ipPart);
 
     for (let i = 0; i < subnets.length; i++) {
       const s = subnets[i];
       const parts = s.subnet.split('/');
+      if (parts.length !== 2 || !parts[0] || !parts[1]) continue;
       const prefix = parseInt(parts[1], 10);
       const networkBigInt = getNetworkAddress(s.network || parts[0], prefix);
       const blockSize = 1n << (128n - BigInt(prefix));
@@ -372,12 +383,28 @@ export function findSubnetForIP(ip: string, subnets: SubnetData[]): { found: boo
 
 export function isValidIPv6Address(ip: string): boolean {
   const addr = ip.split('/')[0];
-  if (!/^[0-9a-fA-F:]+$/.test(addr)) return false;
+  if (!addr || !/^[0-9a-fA-F:]+$/.test(addr)) return false;
   if (!addr.includes(':')) return false;
   if ((addr.match(/::/g) || []).length > 1) return false;
   const expanded = addr.replace('::', ':EXPAND:');
   const groups = expanded.split(':').filter(g => g !== 'EXPAND');
   return !groups.some(g => g.length > 4 || (g.length > 0 && !/^[0-9a-fA-F]+$/.test(g)));
+}
+
+/**
+ * Build BlockData array from selected subnet indices.
+ * Validates subnet format before creating blocks.
+ */
+export function buildBlocksFromIndices(subnets: SubnetData[], indices: Iterable<number>): BlockData[] {
+  const blocks: BlockData[] = [];
+  for (const i of indices) {
+    const subnet = subnets[i];
+    if (!subnet) continue;
+    const parts = subnet.subnet.split('/');
+    if (parts.length !== 2 || !parts[0] || !parts[1]) continue;
+    blocks.push({ network: parts[0], prefix: parseInt(parts[1]), subnet: subnet.subnet });
+  }
+  return blocks;
 }
 
 /**
@@ -400,7 +427,8 @@ export function generateSubnets(
   for (let i = 0n; i < maxSubRedes; i++) {
     const subnetBigInt = (ipv6BigInt & initialMask) + (i << (128n - BigInt(prefix)));
     const subnetHex = subnetBigInt.toString(16).padStart(32, '0');
-    const subnetFormatada = subnetHex.match(/.{1,4}/g)!.join(':');
+    const subnetGroups = subnetHex.match(/.{1,4}/g);
+    const subnetFormatada = subnetGroups ? subnetGroups.join(':') : '';
 
     const subnetInitial = subnetBigInt;
     const subnetFinal = subnetBigInt + (1n << (128n - BigInt(prefix))) - 1n;
@@ -408,10 +436,13 @@ export function generateSubnets(
     const subnetInitialHex = subnetInitial.toString(16).padStart(32, '0');
     const subnetFinalHex = subnetFinal.toString(16).padStart(32, '0');
 
+    const initialGroups = subnetInitialHex.match(/.{1,4}/g);
+    const finalGroups = subnetFinalHex.match(/.{1,4}/g);
+
     result.push({
       subnet: `${subnetFormatada}/${prefix}`,
-      initial: shortenIPv6(subnetInitialHex.match(/.{1,4}/g)!.join(':')),
-      final: shortenIPv6(subnetFinalHex.match(/.{1,4}/g)!.join(':')),
+      initial: shortenIPv6(initialGroups ? initialGroups.join(':') : ''),
+      final: shortenIPv6(finalGroups ? finalGroups.join(':') : ''),
       network: subnetFormatada,
     });
 

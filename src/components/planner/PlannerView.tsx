@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +15,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Level {
+  id: string;
   label: string;
   prefix: number | '';
 }
@@ -42,6 +43,18 @@ const PRESETS = {
 
 const BV_PAGE = 50;
 
+let levelIdCounter = 0;
+function nextLevelId(): string {
+  return `level-${++levelIdCounter}`;
+}
+
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text).then(
+    () => toast.success('Copiado!'),
+    () => toast.error('Falha ao copiar')
+  );
+}
+
 export function PlannerView() {
   const [baseBlock, setBaseBlock] = useState('');
   const [levels, setLevels] = useState<Level[]>([]);
@@ -55,29 +68,12 @@ export function PlannerView() {
   const [modalHasMore, setModalHasMore] = useState(false);
   const [modalTotal, setModalTotal] = useState<bigint>(0n);
 
-  const addLevel = useCallback(() => {
-    setLevels(prev => [...prev, { label: '', prefix: '' }]);
-  }, []);
-
-  const removeLevel = useCallback((idx: number) => {
-    setLevels(prev => prev.filter((_, i) => i !== idx));
-  }, []);
-
-  const updateLevel = useCallback((idx: number, field: 'label' | 'prefix', value: string) => {
-    setLevels(prev => prev.map((l, i) => i === idx ? { ...l, [field]: field === 'prefix' ? (value === '' ? '' : parseInt(value)) : value } : l));
-  }, []);
-
-  const loadPreset = useCallback((key: keyof typeof PRESETS) => {
-    const p = PRESETS[key];
-    setBaseBlock(p.base);
-    setLevels(p.levels.map(l => ({ label: l.label, prefix: l.prefix })));
-    setTimeout(() => calculate(p.base, p.levels), 0);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const calculateRef = useRef<(baseVal?: string, lvls?: { label: string; prefix: number }[]) => void>();
 
   const calculate = useCallback((baseVal?: string, lvls?: { label: string; prefix: number }[]) => {
     const bv = baseVal || baseBlock;
     const parts = bv.trim().split('/');
-    if (parts.length !== 2) { setError('Bloco base inválido. Use formato CIDR — ex: 2001:db8::/32'); return; }
+    if (parts.length !== 2 || !parts[0] || !parts[1]) { setError('Bloco base inválido. Use formato CIDR — ex: 2001:db8::/32'); return; }
     const prefix = parseInt(parts[1], 10);
     if (isNaN(prefix) || prefix < 1 || prefix > 128) { setError('Prefixo inválido'); return; }
 
@@ -109,6 +105,29 @@ export function PlannerView() {
     setBase(parsedBase);
     setError('');
   }, [baseBlock, levels]);
+
+  calculateRef.current = calculate;
+
+  const addLevel = useCallback(() => {
+    setLevels(prev => [...prev, { id: nextLevelId(), label: '', prefix: '' }]);
+  }, []);
+
+  const removeLevel = useCallback((idx: number) => {
+    setLevels(prev => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const updateLevel = useCallback((idx: number, field: 'label' | 'prefix', value: string) => {
+    setLevels(prev => prev.map((l, i) => i === idx ? { ...l, [field]: field === 'prefix' ? (value === '' ? '' : parseInt(value)) : value } : l));
+  }, []);
+
+  const loadPreset = useCallback((key: keyof typeof PRESETS) => {
+    const p = PRESETS[key];
+    setBaseBlock(p.base);
+    const newLevels = p.levels.map(l => ({ id: nextLevelId(), label: l.label, prefix: l.prefix }));
+    setLevels(newLevels);
+    // Use setTimeout to ensure state is updated, calling via ref to avoid stale closure
+    setTimeout(() => calculateRef.current?.(p.base, p.levels), 0);
+  }, []);
 
   const openBlocksModal = useCallback((levelIndex: number) => {
     if (!base || !results) return;
@@ -206,7 +225,7 @@ export function PlannerView() {
           <label className="block text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-2">Níveis</label>
           <div className="space-y-2 mb-3">
             {levels.map((level, i) => (
-              <div key={i} className="flex items-center gap-2">
+              <div key={level.id} className="flex items-center gap-2">
                  <span className="w-5 h-5 rounded bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center shrink-0">
                    {i + 1}
                 </span>
@@ -272,7 +291,7 @@ export function PlannerView() {
                 { val: formatBigInt(results[results.length - 1].totalBlocks), label: `Blocos — ${results[results.length - 1].label}` },
                 { val: formatBigInt(results[results.length - 1].hostsPerBlock), label: 'End./bloco' },
               ].map((s, i) => (
-                 <div key={i} className="p-3 text-center">
+                 <div key={`stat-${i}`} className="p-3 text-center">
                    <div className="text-sm font-bold text-primary tabular-nums">{s.val}</div>
                    <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{s.label}</div>
                  </div>
@@ -299,7 +318,7 @@ export function PlannerView() {
                  </div>
 
                 {results.map((level, i) => (
-                  <div key={i}>
+                  <div key={`tree-${level.prefix}-${i}`}>
                     {/* Connector */}
                     <div className="flex items-center gap-2 pl-3 py-0.5">
                       <div className="w-px h-5 bg-border ml-3" />
@@ -358,7 +377,7 @@ export function PlannerView() {
                       <td className="p-2.5 tabular-nums">{formatBigInt(2n ** BigInt(128 - base.prefix))}</td>
                     </tr>
                     {results.map((l, i) => (
-                      <tr key={i}>
+                      <tr key={`summary-${l.prefix}-${i}`}>
                         <td className="p-2.5 font-medium">{l.label}</td>
                         <td className="p-2.5 font-mono">/{l.prefix}</td>
                         <td className="p-2.5 font-semibold text-primary">{l.bitsAtLevel}</td>
@@ -391,7 +410,7 @@ export function PlannerView() {
             <div className="flex gap-1 overflow-x-auto pb-1">
               {results.map((l, i) => (
                 <button
-                  key={i}
+                  key={`tab-${l.prefix}-${i}`}
                   onClick={() => { setModalLevelIndex(i); openBlocksModal(i); }}
                   className={cn(
                     "px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-colors",
@@ -416,7 +435,7 @@ export function PlannerView() {
                 <code className="text-xs font-mono text-primary flex-1">{block.cidr}</code>
                 <span className="text-[10px] text-muted-foreground">{block.label}</span>
                 <button
-                  onClick={() => { navigator.clipboard.writeText(block.cidr); toast.success('Copiado!'); }}
+                  onClick={() => copyToClipboard(block.cidr)}
                   className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all"
                 >
                   <Copy className="w-3 h-3 text-muted-foreground" />
