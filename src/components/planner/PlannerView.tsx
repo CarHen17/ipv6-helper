@@ -295,9 +295,9 @@ export function PlannerView() {
                 { val: formatBigInt(results[results.length - 1].totalBlocks), label: `Blocos — ${results[results.length - 1].label}` },
                 { val: formatBigInt(results[results.length - 1].hostsPerBlock), label: 'End./bloco' },
               ].map((s, i) => (
-                 <div key={`stat-${i}`} className="p-3 text-center">
-                   <div className="text-sm font-bold text-primary tabular-nums">{s.val}</div>
-                   <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{s.label}</div>
+                 <div key={`stat-${i}`} className="p-3.5 text-center">
+                   <div className="text-base font-bold text-primary tabular-nums">{s.val}</div>
+                   <div className="text-xs text-muted-foreground mt-0.5 truncate">{s.label}</div>
                  </div>
               ))}
             </div>
