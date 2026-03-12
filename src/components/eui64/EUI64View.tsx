@@ -14,13 +14,6 @@ const fadeUp = {
   transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
 };
 
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).then(
-    () => toast.success('Copiado!'),
-    () => toast.error('Falha ao copiar')
-  );
-}
-
 function ResultRow({ icon: Icon, label, value, fullValue, highlight = false }: {
   icon: typeof Globe;
   label: string;
@@ -97,22 +90,10 @@ export function EUI64View() {
     setError('');
     setResult(null);
 
-    if (!macInput.trim()) {
-      setError('Informe um endereço MAC.');
-      return;
-    }
-    if (!isValidMAC(macInput)) {
-      setError('MAC address inválido. Use o formato XX:XX:XX:XX:XX:XX');
-      return;
-    }
-    if (!prefixInput.trim()) {
-      setError('Informe um prefixo /64.');
-      return;
-    }
-    if (!isValidPrefix64(prefixInput)) {
-      setError('Prefixo inválido. Use até 4 hextets (ex: 2001:db8::)');
-      return;
-    }
+    if (!macInput.trim()) { setError('Informe um endereço MAC.'); return; }
+    if (!isValidMAC(macInput)) { setError('MAC address inválido. Use o formato XX:XX:XX:XX:XX:XX'); return; }
+    if (!prefixInput.trim()) { setError('Informe um prefixo /64.'); return; }
+    if (!isValidPrefix64(prefixInput)) { setError('Prefixo inválido. Use até 4 hextets (ex: 2001:db8::)'); return; }
 
     try {
       const res = computeEUI64(macInput, prefixInput);
@@ -131,7 +112,6 @@ export function EUI64View() {
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
           <Cpu className="w-5 h-5 text-primary" />
@@ -142,202 +122,152 @@ export function EUI64View() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
-        {/* Main column */}
-        <div className="space-y-6">
-          {/* Input Card */}
-          <motion.div
-            className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-5"
-            {...fadeUp}
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* MAC Address */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-foreground flex items-center gap-1.5">
-                  Endereço MAC
-                  {macValid === true && <Check className="w-3.5 h-3.5 text-primary" />}
-                </label>
-                <div className="relative">
-                  <Input
-                    value={macInput}
-                    onChange={e => setMacInput(e.target.value)}
-                    placeholder="00:1A:2B:3C:4D:5E"
-                    className={cn(
-                      "font-mono text-sm bg-secondary/60 border-border/60 h-11 pr-10",
-                      macValid === false && "border-destructive/50 focus-visible:ring-destructive/30"
-                    )}
-                    onKeyDown={e => e.key === 'Enter' && handleCalculate()}
-                  />
-                  {macInput && (
-                    <button
-                      onClick={() => setMacInput('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Prefix */}
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-foreground">
-                  Prefixo /64
-                </label>
+      <div className="space-y-6 max-w-3xl">
+        {/* Input Card */}
+        <motion.div
+          className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-5"
+          {...fadeUp}
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground flex items-center gap-1.5">
+                Endereço MAC
+                {macValid === true && <Check className="w-3.5 h-3.5 text-primary" />}
+              </label>
+              <div className="relative">
                 <Input
-                  value={prefixInput}
-                  onChange={e => setPrefixInput(e.target.value)}
-                  placeholder="2001:db8::"
-                  className="font-mono text-sm bg-secondary/60 border-border/60 h-11"
+                  value={macInput}
+                  onChange={e => setMacInput(e.target.value)}
+                  placeholder="00:1A:2B:3C:4D:5E"
+                  className={cn(
+                    "font-mono text-sm bg-secondary/60 border-border/60 h-11 pr-10",
+                    macValid === false && "border-destructive/50 focus-visible:ring-destructive/30"
+                  )}
                   onKeyDown={e => e.key === 'Enter' && handleCalculate()}
                 />
+                {macInput && (
+                  <button
+                    onClick={() => setMacInput('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Quick fills */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-muted-foreground font-medium mr-1">Exemplos:</span>
-              {[
-                { mac: '00:1A:2B:3C:4D:5E', prefix: '2001:db8::' },
-                { mac: 'AA:BB:CC:DD:EE:FF', prefix: '2001:db8::' },
-                { mac: '02:42:AC:11:00:02', prefix: 'fd00::' },
-              ].map((ex, i) => (
-                <button
-                  key={i}
-                  onClick={() => { setMacInput(ex.mac); setPrefixInput(ex.prefix); }}
-                  className={cn(
-                    "inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-all",
-                    "bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border"
-                  )}
-                >
-                  <Zap className="w-3 h-3 text-primary/60" />
-                  <span className="font-mono">{ex.mac}</span>
-                </button>
-              ))}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-foreground">Prefixo /64</label>
+              <Input
+                value={prefixInput}
+                onChange={e => setPrefixInput(e.target.value)}
+                placeholder="2001:db8::"
+                className="font-mono text-sm bg-secondary/60 border-border/60 h-11"
+                onKeyDown={e => e.key === 'Enter' && handleCalculate()}
+              />
             </div>
+          </div>
 
-            {/* Error */}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2.5"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
-                  <Info className="w-4 h-4 shrink-0" />
-                  {error}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <Button onClick={handleCalculate} className="gap-2 h-11 px-5 text-sm">
-                <ArrowRight className="w-4 h-4" /> Calcular
-              </Button>
-              <Button variant="outline" onClick={handleReset} className="gap-2 h-11 text-sm">
-                <RotateCcw className="w-4 h-4" /> Limpar
-              </Button>
-            </div>
-          </motion.div>
-
-          {/* Results */}
-          <AnimatePresence>
-            {result && (
-              <motion.div
-                className="space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.35 }}
+          {/* Quick fills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground font-medium mr-1">Exemplos:</span>
+            {[
+              { mac: '00:1A:2B:3C:4D:5E', prefix: '2001:db8::' },
+              { mac: 'AA:BB:CC:DD:EE:FF', prefix: '2001:db8::' },
+              { mac: '02:42:AC:11:00:02', prefix: 'fd00::' },
+            ].map((ex, i) => (
+              <button
+                key={i}
+                onClick={() => { setMacInput(ex.mac); setPrefixInput(ex.prefix); }}
+                className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border transition-all"
               >
-                <div className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-2">
-                  <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
-                    <Fingerprint className="w-4 h-4 text-primary" />
-                    Resultados
-                  </h2>
+                <Zap className="w-3 h-3 text-primary/60" />
+                <span className="font-mono">{ex.mac}</span>
+              </button>
+            ))}
+          </div>
 
-                  <ResultRow
-                    icon={Fingerprint}
-                    label="MAC normalizado"
-                    value={result.macNormalised}
-                  />
-                  <ResultRow
-                    icon={Fingerprint}
-                    label="Identificador EUI-64"
-                    value={result.eui64}
-                    highlight
-                  />
-                  <ResultRow
-                    icon={Globe}
-                    label="Endereço SLAAC"
-                    value={result.slaacAddress}
-                    fullValue={result.slaacAddressFull}
-                    highlight
-                  />
-                  <ResultRow
-                    icon={Link2}
-                    label="Endereço Link-Local"
-                    value={result.linkLocal}
-                    fullValue={result.linkLocalFull}
-                  />
-                </div>
+          {/* Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2.5"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+              >
+                <Info className="w-4 h-4 shrink-0" />
+                {error}
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
 
-        {/* Sidebar column */}
-        <div className="space-y-6">
-          {/* How it works */}
-          <motion.div
-            className="bg-card rounded-xl border border-border p-5"
-            {...fadeUp}
-          >
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
-              <Info className="w-4 h-4 text-primary" />
-              Como funciona
-            </h3>
-            <ol className="text-xs text-muted-foreground space-y-2 list-decimal list-inside">
-              <li>O MAC de 48 bits é dividido em duas metades</li>
-              <li>Os bytes <span className="font-mono text-primary">FF:FE</span> são inseridos no meio → 64 bits</li>
-              <li>O 7º bit (U/L) do primeiro byte é invertido</li>
-              <li>O resultado é combinado com o prefixo /64 para o endereço SLAAC</li>
-              <li>O mesmo identificador com <span className="font-mono text-primary">fe80::</span> gera o link-local</li>
-            </ol>
-          </motion.div>
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button onClick={handleCalculate} className="gap-2 h-11 px-5 text-sm">
+              <ArrowRight className="w-4 h-4" /> Calcular
+            </Button>
+            <Button variant="outline" onClick={handleReset} className="gap-2 h-11 text-sm">
+              <RotateCcw className="w-4 h-4" /> Limpar
+            </Button>
+          </div>
+        </motion.div>
 
-          {/* Visual diagram */}
-          <motion.div
-            className="bg-card rounded-xl border border-border p-5"
-            {...fadeUp}
-          >
-            <h3 className="text-sm font-semibold text-foreground mb-3">Transformação</h3>
-            <div className="space-y-3 text-xs font-mono">
-              <div>
-                <span className="text-muted-foreground text-[11px] font-sans uppercase tracking-wide block mb-1">MAC (48 bits)</span>
-                <div className="bg-secondary/60 rounded-lg px-3 py-2 text-foreground">
-                  {result ? result.macNormalised : 'XX:XX:XX:XX:XX:XX'}
-                </div>
+        {/* Results */}
+        <AnimatePresence>
+          {result && (
+            <motion.div
+              className="space-y-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <div className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-2">
+                <h2 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-3">
+                  <Fingerprint className="w-4 h-4 text-primary" />
+                  Resultados
+                </h2>
+                <ResultRow icon={Fingerprint} label="MAC normalizado" value={result.macNormalised} />
+                <ResultRow icon={Fingerprint} label="Identificador EUI-64" value={result.eui64} highlight />
+                <ResultRow icon={Globe} label="Endereço SLAAC" value={result.slaacAddress} fullValue={result.slaacAddressFull} highlight />
+                <ResultRow icon={Link2} label="Endereço Link-Local" value={result.linkLocal} fullValue={result.linkLocalFull} />
               </div>
-              <div className="flex justify-center text-muted-foreground">↓ +FF:FE +bit flip</div>
-              <div>
-                <span className="text-muted-foreground text-[11px] font-sans uppercase tracking-wide block mb-1">EUI-64 (64 bits)</span>
-                <div className="bg-primary/8 border border-primary/20 rounded-lg px-3 py-2 text-primary">
-                  {result ? result.eui64 : 'XX:XX:XX:FF:FE:XX:XX:XX'}
+
+              {/* Collapsible info */}
+              <details className="bg-card rounded-xl border border-border">
+                <summary className="px-5 py-3.5 cursor-pointer flex items-center gap-2 text-sm font-medium text-foreground select-none hover:bg-secondary/30 rounded-xl transition-colors">
+                  <Info className="w-4 h-4 text-primary" />
+                  Como funciona o cálculo EUI-64
+                </summary>
+                <div className="px-5 pb-4 text-xs text-muted-foreground border-t border-border pt-3 space-y-3">
+                  <ol className="list-decimal list-inside space-y-1 ml-1">
+                    <li>O MAC de 48 bits é dividido em duas metades</li>
+                    <li>Os bytes <span className="font-mono text-primary">FF:FE</span> são inseridos no meio → 64 bits</li>
+                    <li>O 7º bit (U/L) do primeiro byte é invertido</li>
+                    <li>O resultado é combinado com o prefixo /64 para o endereço SLAAC</li>
+                    <li>O mesmo identificador com <span className="font-mono text-primary">fe80::</span> gera o link-local</li>
+                  </ol>
+                  {/* Inline transformation diagram */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                    <div className="bg-secondary/60 rounded-lg px-3 py-2 text-center">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wide block mb-1">MAC (48 bits)</span>
+                      <span className="font-mono text-xs text-foreground">{result.macNormalised}</span>
+                    </div>
+                    <div className="bg-primary/8 border border-primary/20 rounded-lg px-3 py-2 text-center">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wide block mb-1">EUI-64 (64 bits)</span>
+                      <span className="font-mono text-xs text-primary">{result.eui64}</span>
+                    </div>
+                    <div className="bg-primary/8 border border-primary/20 rounded-lg px-3 py-2 text-center">
+                      <span className="text-[10px] text-muted-foreground uppercase tracking-wide block mb-1">SLAAC (128 bits)</span>
+                      <span className="font-mono text-[11px] text-primary">{result.slaacAddress}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex justify-center text-muted-foreground">↓ + prefixo /64</div>
-              <div>
-                <span className="text-muted-foreground text-[11px] font-sans uppercase tracking-wide block mb-1">SLAAC (128 bits)</span>
-                <div className="bg-primary/8 border border-primary/20 rounded-lg px-3 py-2 text-primary text-[11px]">
-                  {result ? result.slaacAddress : 'prefixo::interface_id/64'}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+              </details>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
