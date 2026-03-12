@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import {
   Calculator, Search, Copy, Download, ChevronDown, X,
   List, Plus, RotateCcw, Info, Layers, ArrowLeftRight, TriangleAlert,
-  FileText, FileSpreadsheet, FileCode, Loader2
+  FileText, FileSpreadsheet, FileCode, Loader2, AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
