@@ -219,7 +219,7 @@ export function CalculatorView() {
             {ctx.isLoading && (
               <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-8 flex flex-col items-center gap-4">
                 <Loader2 className="w-7 h-7 animate-spin text-primary" />
-                <p className="text-xs text-muted-foreground">Gerando sub-redes ({ctx.loadingProgress}%)...</p>
+                <p className="text-sm text-muted-foreground">Gerando sub-redes ({ctx.loadingProgress}%)...</p>
                 <div className="w-full max-w-xs h-1.5 bg-secondary rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-primary rounded-full"
