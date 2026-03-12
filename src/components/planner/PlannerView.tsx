@@ -434,15 +434,15 @@ export function PlannerView() {
 
           <div className="flex-1 overflow-y-auto space-y-0.5 min-h-0 rounded-lg bg-secondary/20 p-1">
             {modalBlocks.map(block => (
-              <div key={block.index} className="flex items-center gap-3 px-2.5 py-1.5 rounded hover:bg-secondary/50 group transition-colors">
-                <span className="text-[10px] text-muted-foreground w-8 text-right tabular-nums">{block.index}</span>
-                <code className="text-xs font-mono text-primary flex-1">{block.cidr}</code>
-                <span className="text-[10px] text-muted-foreground">{block.label}</span>
+              <div key={block.index} className="flex items-center gap-3 px-3 py-2 rounded hover:bg-secondary/50 group transition-colors">
+                <span className="text-xs text-muted-foreground w-8 text-right tabular-nums">{block.index}</span>
+                <code className="text-sm font-mono text-primary flex-1">{block.cidr}</code>
+                <span className="text-xs text-muted-foreground">{block.label}</span>
                 <button
                   onClick={() => copyToClipboard(block.cidr)}
                   className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all"
                 >
-                  <Copy className="w-3 h-3 text-muted-foreground" />
+                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
               </div>
             ))}
