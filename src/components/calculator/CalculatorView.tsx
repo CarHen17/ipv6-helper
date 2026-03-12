@@ -608,13 +608,13 @@ export function CalculatorView() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               O prefixo <code className="font-mono text-primary">/{confirmPrefix?.prefix}</code> gerará{' '}
               <span className="font-semibold text-foreground">{confirmPrefix?.count?.toLocaleString('pt-BR')}</span> sub-redes.
             </p>
-            <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20">
-              <Info className="w-3.5 h-3.5 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
-              <p className="text-[11px] text-muted-foreground">
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20">
+              <Info className="w-4 h-4 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground">
                 Por questões de desempenho, apenas <span className="font-medium text-foreground">{IPV6_CONFIG.MAX_SUBNETS_GENERATION.toLocaleString('pt-BR')}</span> sub-redes serão geradas como amostra.
               </p>
             </div>
