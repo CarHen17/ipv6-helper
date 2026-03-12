@@ -296,10 +296,10 @@ export function CalculatorView() {
                             className="rounded"
                           />
                         </th>
-                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Sub-rede</th>
-                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Inicial</th>
-                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Final</th>
-                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Rede</th>
+                         <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Sub-rede</th>
+                         <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Inicial</th>
+                         <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Final</th>
+                         <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Rede</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
