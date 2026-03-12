@@ -322,10 +322,12 @@ export async function lookupRDAP(ip: string): Promise<RDAPInfo | null> {
 // Full lookup combining all sources
 export async function fullIPv6Lookup(input: string): Promise<IPv6LookupResult> {
   const typeInfo = classifyIPv6(input);
+  const validation = validateBlock(input);
   const result: IPv6LookupResult = {
     input,
-    isValid: true,
+    isValid: validation.isAligned,
     typeInfo,
+    validation,
   };
   
   // Only do network lookups for routable/global addresses
@@ -337,6 +339,16 @@ export async function fullIPv6Lookup(input: string): Promise<IPv6LookupResult> {
     
     result.bgpInfo = bgpInfo || undefined;
     result.rdapInfo = rdapInfo || undefined;
+    
+    // Check if BGP announced prefix differs from input prefix
+    if (bgpInfo?.prefix && validation.prefix) {
+      const bgpParts = bgpInfo.prefix.split('/');
+      const bgpPrefix = bgpParts[1] ? parseInt(bgpParts[1], 10) : 0;
+      if (bgpPrefix !== validation.prefix) {
+        validation.announcedPrefix = bgpInfo.prefix;
+        validation.prefixMismatch = true;
+      }
+    }
   }
   
   return result;
