@@ -7,6 +7,7 @@ import { CalculatorProvider } from "@/hooks/useCalculatorState";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Planner from "./pages/Planner";
+import EUI64 from "./pages/EUI64";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
 
