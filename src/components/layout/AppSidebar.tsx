@@ -35,9 +35,20 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border">
         <div className="flex items-center gap-2.5 px-2 py-2">
-          <div className="w-7 h-7 rounded-md bg-primary/20 flex items-center justify-center shrink-0">
-            <Globe className="w-3.5 h-3.5 text-primary" />
-          </div>
+          <button
+            onClick={collapsed ? toggleSidebar : undefined}
+            className={cn(
+              "w-7 h-7 rounded-md bg-primary/20 flex items-center justify-center shrink-0 transition-all duration-200",
+              collapsed && "hover:bg-primary/30 cursor-pointer hover:scale-105"
+            )}
+            title={collapsed ? 'Expandir menu' : undefined}
+          >
+            {collapsed ? (
+              <PanelLeft className="w-3.5 h-3.5 text-primary" />
+            ) : (
+              <Globe className="w-3.5 h-3.5 text-primary" />
+            )}
+          </button>
           {!collapsed && (
             <>
               <div className="overflow-hidden flex-1 min-w-0">
@@ -46,7 +57,7 @@ export function AppSidebar() {
               </div>
               <button
                 onClick={toggleSidebar}
-                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors shrink-0"
+                className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-all duration-200 shrink-0 hover:scale-105"
                 title="Recolher menu"
               >
                 <PanelLeftClose className="w-3.5 h-3.5" />
@@ -91,7 +102,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               onClick={toggleTheme}
               tooltip={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-              className="text-muted-foreground hover:text-foreground transition-colors text-xs"
+              className="text-muted-foreground hover:text-foreground transition-all duration-200 text-xs"
             >
               {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
               <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
@@ -101,7 +112,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               onClick={resetCalculadora}
               tooltip="Limpar"
-              className="text-destructive hover:bg-destructive/10 transition-colors text-xs"
+              className="text-destructive hover:bg-destructive/10 transition-all duration-200 text-xs"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Limpar</span>
