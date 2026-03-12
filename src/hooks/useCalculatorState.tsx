@@ -140,13 +140,16 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   const subnetIpOffsetRef = useRef(0);
   const aggregatedIpOffsetRef = useRef(0);
   const generateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Signal object passed to generateSubnets; mutate .cancelled = true to abort mid-loop
+  const generationSignalRef = useRef<{ cancelled: boolean }>({ cancelled: false });
 
-  // Cleanup timer on unmount
+  // Cleanup timer on unmount and cancel any running generation
   useEffect(() => {
     return () => {
       if (generateTimerRef.current !== null) {
         clearTimeout(generateTimerRef.current);
       }
+      generationSignalRef.current.cancelled = true;
     };
   }, []);
 
@@ -219,11 +222,15 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
       return;
     }
 
-    // Cancel any pending generation
+    // Cancel any pending generation (timer not yet fired)
     if (generateTimerRef.current !== null) {
       clearTimeout(generateTimerRef.current);
       generateTimerRef.current = null;
     }
+    // Cancel any generation already running asynchronously
+    generationSignalRef.current.cancelled = true;
+    generationSignalRef.current = { cancelled: false };
+    const signal = generationSignalRef.current;
 
     // Capture values before setTimeout to avoid stale closure reads
     const ipv6Input = state.ipv6Input.trim();
@@ -231,12 +238,15 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
 
     setState(prev => ({ ...prev, isLoading: true, loadingProgress: 0, currentStep: 3, selectedSubnetPrefix: prefix }));
 
-    generateTimerRef.current = setTimeout(() => {
+    generateTimerRef.current = setTimeout(async () => {
+      generateTimerRef.current = null;
       try {
         const initialMask = ((1n << BigInt(prefixoNum)) - 1n) << (128n - BigInt(prefixoNum));
-        const subnets = generateSubnets(ipv6BigInt, initialMask, prefix, numSubRedes, (percent) => {
-          setState(prev => ({ ...prev, loadingProgress: percent }));
-        });
+        const subnets = await generateSubnets(ipv6BigInt, initialMask, prefix, numSubRedes, (percent) => {
+          if (!signal.cancelled) setState(prev => ({ ...prev, loadingProgress: percent }));
+        }, signal);
+
+        if (signal.cancelled) return;
 
         // Add to history
         const newHistory = [...currentHistory];
@@ -265,6 +275,7 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
           comparisonResult: null,
         }));
       } catch (error) {
+        if (signal.cancelled) return;
         console.error('[IPv6Calc] Erro ao gerar sub-redes:', error);
         setState(prev => ({
           ...prev,
@@ -273,18 +284,17 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
           errorMessage: 'Erro ao gerar sub-redes. Tente novamente.',
           errorSuggestion: null,
         }));
-      } finally {
-        generateTimerRef.current = null;
       }
     }, 50);
   }, [state.mainBlock, state.ipv6Input, state.history]);
 
   const resetCalculadora = useCallback(() => {
-    // Cancel any pending generation
+    // Cancel any pending or running generation
     if (generateTimerRef.current !== null) {
       clearTimeout(generateTimerRef.current);
       generateTimerRef.current = null;
     }
+    generationSignalRef.current.cancelled = true;
     setState(s => ({
       ...s,
       currentStep: 1,
@@ -531,29 +541,31 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
     // Auto-select the subnet prefix if valid
     if (entry.prefix > prefixoNum) {
       // Use setTimeout to let state settle, then select prefix
-      setTimeout(() => {
+      setTimeout(async () => {
         const ipv6BigInt = BigInt("0x" + enderecoCompleto.replace(/:/g, ''));
         const numSubRedes = 1n << BigInt(entry.prefix - prefixoNum);
         const initialMask = ((1n << BigInt(prefixoNum)) - 1n) << (128n - BigInt(prefixoNum));
 
+        generationSignalRef.current.cancelled = true;
+        generationSignalRef.current = { cancelled: false };
+        const signal = generationSignalRef.current;
+
         setState(s2 => ({ ...s2, isLoading: true, loadingProgress: 0, selectedSubnetPrefix: entry.prefix }));
 
-        generateTimerRef.current = setTimeout(() => {
-          try {
-            const subnets = generateSubnets(ipv6BigInt, initialMask, entry.prefix, numSubRedes);
-            setState(s3 => ({
-              ...s3,
-              currentStep: 3,
-              subRedesGeradas: subnets,
-              displayedCount: Math.min(LOAD_BATCH, subnets.length),
-              isLoading: false,
-              loadingProgress: 100,
-            }));
-          } catch {
-            setState(s3 => ({ ...s3, isLoading: false, loadingProgress: 0 }));
-          }
-          generateTimerRef.current = null;
-        }, 50);
+        try {
+          const subnets = await generateSubnets(ipv6BigInt, initialMask, entry.prefix, numSubRedes, undefined, signal);
+          if (signal.cancelled) return;
+          setState(s3 => ({
+            ...s3,
+            currentStep: 3,
+            subRedesGeradas: subnets,
+            displayedCount: Math.min(LOAD_BATCH, subnets.length),
+            isLoading: false,
+            loadingProgress: 100,
+          }));
+        } catch {
+          if (!signal.cancelled) setState(s3 => ({ ...s3, isLoading: false, loadingProgress: 0 }));
+        }
       }, 0);
     }
   }, []);

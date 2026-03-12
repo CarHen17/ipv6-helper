@@ -408,23 +408,28 @@ export function buildBlocksFromIndices(subnets: SubnetData[], indices: Iterable<
 }
 
 /**
- * Generate subnets synchronously (for React state management)
- * Returns the array of generated subnets
+ * Generate subnets asynchronously with chunked yielding to keep the UI responsive.
+ * Yields the event loop every CHUNK_SIZE iterations via setTimeout(0).
+ * Pass a `signal` object to cancel mid-generation (e.g. on reset or new input).
  */
-export function generateSubnets(
+export async function generateSubnets(
   ipv6BigInt: bigint,
   initialMask: bigint,
   prefix: number,
   numSubRedes: bigint,
-  onProgress?: (percent: number) => void
-): SubnetData[] {
+  onProgress?: (percent: number) => void,
+  signal?: { cancelled: boolean }
+): Promise<SubnetData[]> {
   const maxSubRedes = numSubRedes > BigInt(IPV6_CONFIG.MAX_SUBNETS_GENERATION)
     ? BigInt(IPV6_CONFIG.MAX_SUBNETS_GENERATION)
     : numSubRedes;
 
   const result: SubnetData[] = [];
+  const CHUNK = BigInt(IPV6_CONFIG.CHUNK_SIZE); // yield every 1000 items
 
   for (let i = 0n; i < maxSubRedes; i++) {
+    if (signal?.cancelled) return result; // early exit on cancellation
+
     const subnetBigInt = (ipv6BigInt & initialMask) + (i << (128n - BigInt(prefix)));
     const subnetHex = subnetBigInt.toString(16).padStart(32, '0');
     const subnetGroups = subnetHex.match(/.{1,4}/g);
@@ -446,8 +451,10 @@ export function generateSubnets(
       network: subnetFormatada,
     });
 
-    if (onProgress && i % 1000n === 0n) {
-      onProgress(Math.min(99, Math.floor(Number((i * 100n) / maxSubRedes))));
+    // At the end of each chunk: report progress and yield the event loop
+    if (i % CHUNK === CHUNK - 1n) {
+      onProgress?.(Math.min(99, Math.floor(Number((i * 100n) / maxSubRedes))));
+      await new Promise<void>(r => setTimeout(r, 0));
     }
   }
 
