@@ -151,7 +151,7 @@ export function CalculatorView() {
                     ctx.errorMessage && "animate-shake border-destructive"
                   )}
                 />
-                <Button type="submit" className="gap-2 h-10 px-5">
+                <Button type="submit" size="sm" className="gap-2 h-9 px-4 text-xs">
                   <Calculator className="w-4 h-4" />
                   <span className="hidden sm:inline">Calcular</span>
                 </Button>
