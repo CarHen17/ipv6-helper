@@ -402,10 +402,10 @@ export function PlannerView() {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] flex flex-col gap-3">
           <DialogHeader className="shrink-0">
-            <DialogTitle className="flex items-center gap-2 text-sm">
+             <DialogTitle className="flex items-center gap-2 text-base">
               <TableIcon className="w-4 h-4 text-primary" />
               Blocos — {results?.[modalLevelIndex]?.label}
-              <span className="text-[11px] bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">/{results?.[modalLevelIndex]?.prefix}</span>
+              <span className="text-xs bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">/{results?.[modalLevelIndex]?.prefix}</span>
             </DialogTitle>
           </DialogHeader>
 
