@@ -186,17 +186,13 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   }, [state.ipv6Input]);
 
   const selecionarPrefixo = useCallback((prefix: number) => {
-    const s = state;
-    if (!s.mainBlock) return;
+    if (!state.mainBlock) return;
 
-    const enderecoCompleto = s.mainBlock.network;
-    const prefixoNum = s.mainBlock.prefix;
+    const { network: enderecoCompleto, prefix: prefixoNum } = state.mainBlock;
     if (prefix <= prefixoNum) return;
 
-    const ipv6SemDoisPontos = enderecoCompleto.replace(/:/g, '');
-    const ipv6BigInt = BigInt("0x" + ipv6SemDoisPontos);
-    const bitsAdicionais = prefix - prefixoNum;
-    const numSubRedes = 1n << BigInt(bitsAdicionais);
+    const ipv6BigInt = BigInt("0x" + enderecoCompleto.replace(/:/g, ''));
+    const numSubRedes = 1n << BigInt(prefix - prefixoNum);
 
     if (numSubRedes > 1000000n) {
       const confirmacao = confirm(
@@ -204,6 +200,10 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
       );
       if (!confirmacao) return;
     }
+
+    // Capture values before setTimeout to avoid stale closure reads
+    const ipv6Input = state.ipv6Input.trim();
+    const currentHistory = state.history;
 
     setState(prev => ({ ...prev, isLoading: true, loadingProgress: 0, currentStep: 3, selectedSubnetPrefix: prefix }));
 
@@ -213,10 +213,10 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
         setState(prev => ({ ...prev, loadingProgress: percent }));
       });
 
-      // Add to history
-      const newHistory = [...state.history];
+      // Add to history using values captured before setTimeout
+      const newHistory = [...currentHistory];
       const entry: HistoryEntry = {
-        block: state.ipv6Input.trim(),
+        block: ipv6Input,
         prefix,
         timestamp: Date.now(),
         subnetCount: subnets.length,
@@ -240,7 +240,7 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
         comparisonResult: null,
       }));
     }, 50);
-  }, [state]);
+  }, [state.mainBlock, state.ipv6Input, state.history]);
 
   const resetCalculadora = useCallback(() => {
     setState(s => ({

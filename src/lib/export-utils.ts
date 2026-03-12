@@ -46,7 +46,7 @@ export function exportToTXT(data: IPData[], filename = 'ips_ipv6') {
   downloadFile(txtContent, `${filename}_${getCurrentDateString()}.txt`, 'text/plain');
 }
 
-export function exportToJSON(data: IPData[], filename = 'ips_ipv6', metadata: Record<string, any> = {}) {
+export function exportToJSON(data: IPData[], filename = 'ips_ipv6', metadata: Record<string, unknown> = {}) {
   if (!data || data.length === 0) return;
   const jsonData = {
     metadata: {
