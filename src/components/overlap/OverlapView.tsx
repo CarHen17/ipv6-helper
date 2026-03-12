@@ -117,8 +117,8 @@ function StatCard({ value, label, icon: Icon, variant = 'default' }: {
         <Icon className="w-4 h-4" />
       </div>
       <div>
-        <p className="text-lg font-bold leading-none text-foreground">{value}</p>
-        <p className="text-xs text-muted-foreground mt-1">{label}</p>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-lg font-bold leading-tight text-foreground">{value}</p>
       </div>
     </div>
   );
