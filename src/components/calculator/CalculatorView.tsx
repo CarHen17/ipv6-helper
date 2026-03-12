@@ -162,7 +162,7 @@ export function CalculatorView() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+                    className="mt-2.5 p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs"
                   >
                     <p>{ctx.errorMessage}</p>
                     {ctx.errorSuggestion && (
