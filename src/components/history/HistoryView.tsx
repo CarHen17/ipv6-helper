@@ -1,4 +1,4 @@
-import { useCalculator } from '@/hooks/useCalculatorState';
+import { useCalculator, type HistoryEntry } from '@/hooks/useCalculatorState';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
