@@ -355,39 +355,39 @@ export function PlannerView() {
             {/* Summary table */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-4 py-3 border-b border-border/60">
-               <h3 className="text-xs font-medium flex items-center gap-2">
-                 <TableIcon className="w-3.5 h-3.5 text-primary" /> Tabela de resumo
+               <h3 className="text-sm font-medium flex items-center gap-2">
+                 <TableIcon className="w-4 h-4 text-primary" /> Tabela de resumo
                </h3>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-sm">
                   <thead className="bg-secondary/60">
                     <tr>
-                       <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Nível</th>
-                       <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Prefixo</th>
-                       <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Bits</th>
-                       <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Filhos/pai</th>
-                       <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">Total</th>
-                       <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[11px]">End./bloco</th>
+                       <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Nível</th>
+                       <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Prefixo</th>
+                       <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Bits</th>
+                       <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Filhos/pai</th>
+                       <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Total</th>
+                       <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">End./bloco</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
                     <tr>
-                      <td className="p-2.5 italic text-muted-foreground">Base</td>
-                      <td className="p-2.5 font-mono">/{base.prefix}</td>
-                      <td className="p-2.5">—</td>
-                      <td className="p-2.5">—</td>
-                      <td className="p-2.5">1</td>
-                      <td className="p-2.5 tabular-nums">{formatBigInt(2n ** BigInt(128 - base.prefix))}</td>
+                      <td className="p-3 italic text-muted-foreground">Base</td>
+                      <td className="p-3 font-mono">/{base.prefix}</td>
+                      <td className="p-3">—</td>
+                      <td className="p-3">—</td>
+                      <td className="p-3">1</td>
+                      <td className="p-3 tabular-nums">{formatBigInt(2n ** BigInt(128 - base.prefix))}</td>
                     </tr>
                     {results.map((l, i) => (
                       <tr key={`summary-${l.prefix}-${i}`}>
-                        <td className="p-2.5 font-medium">{l.label}</td>
-                        <td className="p-2.5 font-mono">/{l.prefix}</td>
-                        <td className="p-2.5 font-semibold text-primary">{l.bitsAtLevel}</td>
-                        <td className="p-2.5 tabular-nums">{formatBigInt(l.childrenPerParent)}</td>
-                        <td className="p-2.5 font-semibold tabular-nums">{formatBigInt(l.totalBlocks)}</td>
-                        <td className="p-2.5 tabular-nums">{formatBigInt(l.hostsPerBlock)}</td>
+                        <td className="p-3 font-medium">{l.label}</td>
+                        <td className="p-3 font-mono">/{l.prefix}</td>
+                        <td className="p-3 font-semibold text-primary">{l.bitsAtLevel}</td>
+                        <td className="p-3 tabular-nums">{formatBigInt(l.childrenPerParent)}</td>
+                        <td className="p-3 font-semibold tabular-nums">{formatBigInt(l.totalBlocks)}</td>
+                        <td className="p-3 tabular-nums">{formatBigInt(l.hostsPerBlock)}</td>
                       </tr>
                     ))}
                   </tbody>
