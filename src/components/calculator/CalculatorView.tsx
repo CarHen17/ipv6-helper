@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Calculator, Search, Copy, Download, ChevronDown, Check, X,
+  Calculator, Search, Copy, Download, ChevronDown, X,
   List, Plus, RotateCcw, Info, Layers, ArrowLeftRight, TriangleAlert,
   FileText, FileSpreadsheet, FileCode, Loader2
 } from 'lucide-react';
@@ -33,9 +33,11 @@ export function CalculatorView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [reverseSearchIp, setReverseSearchIp] = useState('');
   const [reverseResult, setReverseResult] = useState<{ found: boolean; subnet?: SubnetData; index?: number; error?: string } | null>(null);
+  const [reverseOpen, setReverseOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
   const [exportTarget, setExportTarget] = useState<'main' | 'subnet' | 'aggregated'>('main');
   const [exportFilename, setExportFilename] = useState('ips_ipv6');
+  const [subnetIpsModalOpen, setSubnetIpsModalOpen] = useState(false);
 
   const filteredSubnets = useMemo((): { subnet: SubnetData; realIdx: number }[] => {
     if (!searchQuery) {
@@ -95,6 +97,11 @@ export function CalculatorView() {
     }
     setExportModalOpen(false);
     toast.success(`Arquivo ${format.toUpperCase()} exportado com sucesso!`);
+  };
+
+  const handleGenerateSubnetIps = () => {
+    ctx.generateSubnetIps();
+    setSubnetIpsModalOpen(true);
   };
 
   const sidebarBlockDisplay = ctx.sidebarBlock
@@ -157,12 +164,12 @@ export function CalculatorView() {
             </form>
           </motion.div>
 
-          {/* Step 2: Prefix Selection */}
+          {/* Step 2: Prefix Selection — clean grid */}
           <AnimatePresence>
             {ctx.currentStep >= 2 && ctx.mainBlock && (
               <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5 md:p-6">
                 <h3 className="text-sm font-medium text-foreground mb-4">Escolha o prefixo para divisão:</h3>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-11 gap-1">
                   {Array.from({ length: 128 - ctx.mainBlock.prefix }, (_, i) => ctx.mainBlock!.prefix + 1 + i).map(prefix => {
                     const isCommon = COMMON_PREFIXES[prefix];
                     return (
@@ -170,10 +177,10 @@ export function CalculatorView() {
                         key={prefix}
                         onClick={() => ctx.selecionarPrefixo(prefix)}
                         className={cn(
-                          "px-2.5 py-1 rounded-md text-xs font-mono font-medium transition-all duration-150 border",
+                          "py-1.5 rounded text-[11px] font-mono font-medium transition-all duration-150 border text-center",
                           isCommon
-                            ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-sm hover:shadow-primary/10"
-                            : "border-border/40 bg-secondary/50 text-secondary-foreground hover:border-primary/20 hover:bg-primary/5"
+                            ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/25"
+                            : "border-border/30 bg-secondary/40 text-muted-foreground hover:border-primary/30 hover:bg-primary/5 hover:text-foreground"
                         )}
                         title={isCommon || undefined}
                       >
@@ -214,21 +221,30 @@ export function CalculatorView() {
                       {ctx.subRedesGeradas.length.toLocaleString('pt-BR')}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <div className="relative">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                       <Input
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Filtrar..."
-                        className="pl-8 h-8 text-xs w-44 bg-secondary/50 border-border/40"
+                        className="pl-8 h-8 text-xs w-40 bg-secondary/50 border-border/40"
                       />
                     </div>
                     {ctx.selectedIndices.size === 1 && (
-                      <Button size="sm" variant="outline" className="text-xs gap-1 h-8" onClick={ctx.generateSubnetIps}>
+                      <Button size="sm" variant="outline" className="text-xs gap-1 h-8" onClick={handleGenerateSubnetIps}>
                         <List className="w-3.5 h-3.5" /> IPs
                       </Button>
                     )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs h-8 px-2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setReverseOpen(true)}
+                      title="Busca reversa"
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -308,66 +324,6 @@ export function CalculatorView() {
                     </Button>
                   </div>
                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Reverse Search */}
-          <AnimatePresence>
-            {ctx.subRedesGeradas.length > 0 && (
-              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5">
-                <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
-                  <Search className="w-4 h-4 text-primary" /> Busca Reversa
-                </h3>
-                <div className="flex gap-2">
-                  <Input
-                    value={reverseSearchIp}
-                    onChange={e => setReverseSearchIp(e.target.value)}
-                    placeholder="Ex.: 2001:db8::1"
-                    className="font-mono bg-secondary/60 flex-1"
-                    onKeyDown={e => e.key === 'Enter' && handleReverseSearch()}
-                  />
-                  <Button onClick={handleReverseSearch} variant="outline" className="gap-1.5">
-                    <Search className="w-4 h-4" /> Buscar
-                  </Button>
-                </div>
-                {reverseResult && (
-                  <div className={cn(
-                    "mt-3 p-3 rounded-lg text-sm",
-                    reverseResult.found ? "bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20 text-[hsl(var(--success))]" :
-                    reverseResult.error ? "bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-[hsl(var(--warning))]" :
-                    "bg-muted text-muted-foreground"
-                  )}>
-                    {reverseResult.found
-                      ? `Encontrado na sub-rede: ${shortenIPv6(reverseResult.subnet?.subnet ?? '')} (índice ${(reverseResult.index ?? 0) + 1})`
-                      : reverseResult.error || 'Endereço não encontrado nas sub-redes geradas'}
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Subnet IPs */}
-          <AnimatePresence>
-            {ctx.subnetIpsVisible && ctx.subnetIpsBlock && (
-              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium">
-                    IPs da Sub-rede: <code className="text-primary text-xs">{shortenIPv6(ctx.subnetIpsBlock.subnet)}</code>
-                  </h3>
-                  <div className="flex gap-1.5">
-                    <Button size="sm" variant="ghost" onClick={ctx.generateMoreSubnetIps} className="gap-1 text-xs h-7">
-                      <Plus className="w-3 h-3" /> +50
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={ctx.resetSubnetIps} className="gap-1 text-xs h-7">
-                      <RotateCcw className="w-3 h-3" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => { setExportTarget('subnet'); setExportModalOpen(true); }} className="gap-1 text-xs h-7">
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-                <IPList ips={ctx.subnetIps} onCopy={copyToClipboard} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -496,6 +452,71 @@ export function CalculatorView() {
         </div>
       </div>
 
+      {/* Reverse Search Dialog */}
+      <Dialog open={reverseOpen} onOpenChange={setReverseOpen}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Search className="w-4 h-4 text-primary" /> Busca Reversa
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">Encontre a qual sub-rede um endereço IPv6 pertence.</p>
+            <div className="flex gap-2">
+              <Input
+                value={reverseSearchIp}
+                onChange={e => setReverseSearchIp(e.target.value)}
+                placeholder="Ex.: 2001:db8::1"
+                className="font-mono bg-secondary/60 flex-1"
+                onKeyDown={e => e.key === 'Enter' && handleReverseSearch()}
+              />
+              <Button onClick={handleReverseSearch} size="sm" className="gap-1.5">
+                <Search className="w-4 h-4" /> Buscar
+              </Button>
+            </div>
+            {reverseResult && (
+              <div className={cn(
+                "p-3 rounded-lg text-sm",
+                reverseResult.found ? "bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20 text-[hsl(var(--success))]" :
+                reverseResult.error ? "bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-[hsl(var(--warning))]" :
+                "bg-muted text-muted-foreground"
+              )}>
+                {reverseResult.found
+                  ? `Encontrado na sub-rede: ${shortenIPv6(reverseResult.subnet?.subnet ?? '')} (índice ${(reverseResult.index ?? 0) + 1})`
+                  : reverseResult.error || 'Endereço não encontrado nas sub-redes geradas'}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Subnet IPs Dialog */}
+      <Dialog open={subnetIpsModalOpen && ctx.subnetIpsVisible && !!ctx.subnetIpsBlock} onOpenChange={(open) => { if (!open) { setSubnetIpsModalOpen(false); ctx.resetSubnetIps(); } }}>
+        <DialogContent className="bg-card border-border max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <List className="w-4 h-4 text-primary" />
+              IPs da Sub-rede: <code className="text-primary text-xs font-mono">{ctx.subnetIpsBlock ? shortenIPv6(ctx.subnetIpsBlock.subnet) : ''}</code>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center gap-2 pb-2">
+            <Button size="sm" variant="outline" onClick={ctx.generateMoreSubnetIps} className="gap-1 text-xs h-7">
+              <Plus className="w-3 h-3" /> +50
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { ctx.resetSubnetIps(); ctx.generateSubnetIps(); }} className="gap-1 text-xs h-7">
+              <RotateCcw className="w-3 h-3" /> Reset
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => { setExportTarget('subnet'); setExportModalOpen(true); }} className="gap-1 text-xs h-7">
+              <Download className="w-3 h-3" /> Exportar
+            </Button>
+            <span className="text-[11px] text-muted-foreground ml-auto tabular-nums">{ctx.subnetIps.length} IPs</span>
+          </div>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <IPList ips={ctx.subnetIps} onCopy={copyToClipboard} maxHeight="100%" />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Export Modal */}
       <Dialog open={exportModalOpen} onOpenChange={setExportModalOpen}>
         <DialogContent className="bg-card border-border">
@@ -557,7 +578,7 @@ function IPList({ ips, onCopy, maxHeight = '400px' }: { ips: { ip: string; numbe
   return (
     <div className="overflow-y-auto space-y-px rounded-lg bg-secondary/30 p-1" style={{ maxHeight }}>
       {ips.map(item => (
-        <div key={item.number} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-secondary/60 group transition-colors">
+        <div key={item.number} className="flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-secondary/60 group transition-colors">
           <span className="text-[10px] text-muted-foreground w-7 text-right shrink-0 tabular-nums">{item.number}</span>
           <code className="text-xs font-mono text-foreground/90 flex-1 truncate">{item.ip}</code>
           <button

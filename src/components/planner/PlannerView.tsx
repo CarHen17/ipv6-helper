@@ -71,8 +71,6 @@ export function PlannerView() {
     const p = PRESETS[key];
     setBaseBlock(p.base);
     setLevels(p.levels.map(l => ({ label: l.label, prefix: l.prefix })));
-    // Auto-calculate: passes explicit args, so calculate's closure values don't matter.
-    // Keep dep array empty to avoid Temporal Dead Zone — loadPreset is declared before calculate.
     setTimeout(() => calculate(p.base, p.levels), 0);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -95,7 +93,6 @@ export function PlannerView() {
       prev = l.prefix;
     }
 
-    // Compute
     const computed: ComputedLevel[] = [];
     let parentPrefix = parsedBase.prefix;
     let totalBlocks = 1n;
@@ -167,18 +164,18 @@ export function PlannerView() {
   }, []);
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-          <Network className="w-6 h-6 text-primary" /> Planejador Hierárquico
+    <div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-3">
+          <Network className="w-5 h-5 text-primary" /> Planejador Hierárquico
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Planeje hierarquias multi-nível de endereçamento IPv6</p>
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {/* Presets */}
-        <div className="p-5 border-b border-border">
-          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Presets</label>
+        <div className="p-4 md:p-5 border-b border-border/60">
+          <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2.5">Presets</label>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {[
               { key: 'isp' as const, icon: Globe, label: 'ISP' },
@@ -186,66 +183,66 @@ export function PlannerView() {
               { key: 'datacenter' as const, icon: Server, label: 'Datacenter' },
               { key: 'mobile' as const, icon: Smartphone, label: 'Mobile' },
             ].map(p => (
-              <Button key={p.key} variant="outline" size="sm" className="gap-2" onClick={() => loadPreset(p.key)}>
-                <p.icon className="w-4 h-4" /> {p.label}
+              <Button key={p.key} variant="outline" size="sm" className="gap-2 h-9 text-xs" onClick={() => loadPreset(p.key)}>
+                <p.icon className="w-3.5 h-3.5" /> {p.label}
               </Button>
             ))}
           </div>
         </div>
 
         {/* Base block */}
-        <div className="p-5 border-b border-border">
-          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Bloco Base</label>
+        <div className="p-4 md:p-5 border-b border-border/60">
+          <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2.5">Bloco Base</label>
           <Input
             value={baseBlock}
             onChange={e => setBaseBlock(e.target.value)}
             placeholder="Ex.: 2001:db8::/32"
-            className="font-mono bg-secondary"
+            className="font-mono bg-secondary/60 h-10"
           />
         </div>
 
         {/* Levels */}
-        <div className="p-5 border-b border-border">
-          <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Níveis</label>
+        <div className="p-4 md:p-5 border-b border-border/60">
+          <label className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground mb-2.5">Níveis</label>
           <div className="space-y-2 mb-3">
             {levels.map((level, i) => (
               <div key={i} className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-md bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0">
+                <span className="w-6 h-6 rounded bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center shrink-0">
                   {i + 1}
                 </span>
                 <Input
                   value={level.label}
                   onChange={e => updateLevel(i, 'label', e.target.value)}
                   placeholder="Ex: Região"
-                  className="bg-secondary flex-1"
+                  className="bg-secondary/60 flex-1 h-9 text-sm"
                 />
-                <span className="text-muted-foreground font-bold">/</span>
+                <span className="text-muted-foreground font-bold text-sm">/</span>
                 <Input
                   type="number"
                   value={level.prefix}
                   onChange={e => updateLevel(i, 'prefix', e.target.value)}
                   placeholder="48"
-                  className="bg-secondary w-20 font-mono text-center"
+                  className="bg-secondary/60 w-20 font-mono text-center h-9 text-sm"
                   min={1}
                   max={128}
                 />
-                <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeLevel(i)}>
-                  <X className="w-4 h-4" />
+                <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive h-9 w-9" onClick={() => removeLevel(i)}>
+                  <X className="w-3.5 h-3.5" />
                 </Button>
               </div>
             ))}
           </div>
-          <Button variant="outline" className="w-full gap-2 border-dashed" onClick={addLevel}>
-            <Plus className="w-4 h-4" /> Adicionar Nível
+          <Button variant="outline" className="w-full gap-2 border-dashed h-9 text-xs" onClick={addLevel}>
+            <Plus className="w-3.5 h-3.5" /> Adicionar Nível
           </Button>
         </div>
 
         {/* Actions */}
-        <div className="p-5 grid grid-cols-[1fr_2fr] gap-3">
-          <Button variant="outline" onClick={clearPlanner} className="gap-2">
+        <div className="p-4 md:p-5 flex gap-3">
+          <Button variant="outline" onClick={clearPlanner} className="gap-2 h-10 flex-[1]">
             <Trash2 className="w-4 h-4" /> Limpar
           </Button>
-          <Button onClick={() => calculate()} className="gap-2">
+          <Button onClick={() => calculate()} className="gap-2 h-10 flex-[2]">
             <Calculator className="w-4 h-4" /> Calcular Hierarquia
           </Button>
         </div>
@@ -255,7 +252,7 @@ export function PlannerView() {
       <AnimatePresence>
         {error && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="mt-4 p-4 rounded-xl bg-warning/10 border border-warning/30 text-warning text-sm flex items-start gap-2">
+            className="mt-4 p-3.5 rounded-xl bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-[hsl(var(--warning))] text-sm flex items-start gap-2">
             <Info className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </motion.div>
@@ -266,65 +263,65 @@ export function PlannerView() {
       <AnimatePresence>
         {results && base && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-            className="mt-6 space-y-6">
+            className="mt-6 space-y-5">
             {/* Stats bar */}
-            <div className="bg-card rounded-xl border border-border flex divide-x divide-border">
+            <div className="bg-card rounded-xl border border-border grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
               {[
                 { val: results.length.toString(), label: 'Níveis' },
                 { val: (results[results.length - 1].prefix - base.prefix).toString(), label: 'Bits alocados' },
                 { val: formatBigInt(results[results.length - 1].totalBlocks), label: `Blocos — ${results[results.length - 1].label}` },
                 { val: formatBigInt(results[results.length - 1].hostsPerBlock), label: 'End./bloco' },
               ].map((s, i) => (
-                <div key={i} className="flex-1 p-4 text-center">
-                  <div className="text-lg font-bold text-primary">{s.val}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{s.label}</div>
+                <div key={i} className="p-3.5 text-center">
+                  <div className="text-base font-bold text-primary tabular-nums">{s.val}</div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5 truncate">{s.label}</div>
                 </div>
               ))}
             </div>
 
             {/* Tree */}
-            <div className="bg-card rounded-xl border border-border p-6">
-              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+            <div className="bg-card rounded-xl border border-border p-5">
+              <h3 className="text-sm font-medium mb-4 flex items-center gap-2">
                 <Network className="w-4 h-4 text-primary" /> Hierarquia visual
               </h3>
               <div className="space-y-0">
                 {/* Base node */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
-                  <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-                    <Globe className="w-4 h-4 text-primary" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                  <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                    <Globe className="w-3.5 h-3.5 text-primary" />
                   </div>
-                  <div>
-                    <div className="text-sm font-semibold flex items-center gap-2">
-                      Bloco Base <code className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">{base.address}/{base.prefix}</code>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium flex items-center gap-2">
+                      Bloco Base <code className="text-[11px] bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">{base.address}/{base.prefix}</code>
                     </div>
-                    <div className="text-xs text-muted-foreground">{formatBigInt(2n ** BigInt(128 - base.prefix))} endereços totais</div>
+                    <div className="text-[11px] text-muted-foreground">{formatBigInt(2n ** BigInt(128 - base.prefix))} endereços totais</div>
                   </div>
                 </div>
 
                 {results.map((level, i) => (
                   <div key={i}>
                     {/* Connector */}
-                    <div className="flex items-center gap-2 pl-4 py-1">
-                      <div className="w-0.5 h-6 bg-border" />
-                      <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                    <div className="flex items-center gap-2 pl-3 py-0.5">
+                      <div className="w-px h-5 bg-border ml-3" />
+                      <span className="text-[10px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded-full">
                         +{level.bitsAtLevel} bit{level.bitsAtLevel !== 1 ? 's' : ''} → {formatBigInt(level.childrenPerParent)}×
                       </span>
                     </div>
                     {/* Node */}
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
-                      <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                      <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-[11px] font-bold shrink-0">
                         {i + 1}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold flex items-center gap-2">
-                          {level.label} <span className="text-xs bg-primary/20 text-primary px-1.5 py-0.5 rounded">/{level.prefix}</span>
+                        <div className="text-sm font-medium flex items-center gap-2">
+                          {level.label} <span className="text-[11px] bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">/{level.prefix}</span>
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-[11px] text-muted-foreground">
                           {formatBigInt(level.totalBlocks)} blocos · {formatBigInt(level.hostsPerBlock)} end./bloco
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="shrink-0 gap-1 text-xs" onClick={() => openBlocksModal(i)}>
-                        <TableIcon className="w-3.5 h-3.5" /> Ver blocos
+                      <Button size="sm" variant="outline" className="shrink-0 gap-1 text-xs h-7" onClick={() => openBlocksModal(i)}>
+                        <TableIcon className="w-3 h-3" /> Ver blocos
                       </Button>
                     </div>
                   </div>
@@ -334,40 +331,40 @@ export function PlannerView() {
 
             {/* Summary table */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
-              <div className="p-4 border-b border-border">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
+              <div className="px-4 py-3 border-b border-border/60">
+                <h3 className="text-sm font-medium flex items-center gap-2">
                   <TableIcon className="w-4 h-4 text-primary" /> Tabela de resumo
                 </h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead className="bg-secondary">
+                  <thead className="bg-secondary/60">
                     <tr>
-                      <th className="p-3 text-left font-semibold text-muted-foreground">Nível</th>
-                      <th className="p-3 text-left font-semibold text-muted-foreground">Prefixo</th>
-                      <th className="p-3 text-left font-semibold text-muted-foreground">Bits</th>
-                      <th className="p-3 text-left font-semibold text-muted-foreground">Filhos/pai</th>
-                      <th className="p-3 text-left font-semibold text-muted-foreground">Total</th>
-                      <th className="p-3 text-left font-semibold text-muted-foreground">End./bloco</th>
+                      <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Nível</th>
+                      <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Prefixo</th>
+                      <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Bits</th>
+                      <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Filhos/pai</th>
+                      <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Total</th>
+                      <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">End./bloco</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr className="border-t border-border/50">
-                      <td className="p-3 italic text-muted-foreground">Base</td>
-                      <td className="p-3 font-mono">/{base.prefix}</td>
-                      <td className="p-3">—</td>
-                      <td className="p-3">—</td>
-                      <td className="p-3">1</td>
-                      <td className="p-3">{formatBigInt(2n ** BigInt(128 - base.prefix))}</td>
+                  <tbody className="divide-y divide-border/30">
+                    <tr>
+                      <td className="p-2.5 italic text-muted-foreground">Base</td>
+                      <td className="p-2.5 font-mono">/{base.prefix}</td>
+                      <td className="p-2.5">—</td>
+                      <td className="p-2.5">—</td>
+                      <td className="p-2.5">1</td>
+                      <td className="p-2.5 tabular-nums">{formatBigInt(2n ** BigInt(128 - base.prefix))}</td>
                     </tr>
                     {results.map((l, i) => (
-                      <tr key={i} className="border-t border-border/50">
-                        <td className="p-3 font-medium">{l.label}</td>
-                        <td className="p-3 font-mono">/{l.prefix}</td>
-                        <td className="p-3 font-bold">{l.bitsAtLevel}</td>
-                        <td className="p-3">{formatBigInt(l.childrenPerParent)}</td>
-                        <td className="p-3 font-bold">{formatBigInt(l.totalBlocks)}</td>
-                        <td className="p-3">{formatBigInt(l.hostsPerBlock)}</td>
+                      <tr key={i}>
+                        <td className="p-2.5 font-medium">{l.label}</td>
+                        <td className="p-2.5 font-mono">/{l.prefix}</td>
+                        <td className="p-2.5 font-semibold text-primary">{l.bitsAtLevel}</td>
+                        <td className="p-2.5 tabular-nums">{formatBigInt(l.childrenPerParent)}</td>
+                        <td className="p-2.5 font-semibold tabular-nums">{formatBigInt(l.totalBlocks)}</td>
+                        <td className="p-2.5 tabular-nums">{formatBigInt(l.hostsPerBlock)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -382,23 +379,23 @@ export function PlannerView() {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="bg-card border-border max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <TableIcon className="w-5 h-5 text-primary" />
+            <DialogTitle className="flex items-center gap-2 text-sm">
+              <TableIcon className="w-4 h-4 text-primary" />
               Blocos — {results?.[modalLevelIndex]?.label}
-              <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded">/{results?.[modalLevelIndex]?.prefix}</span>
+              <span className="text-[11px] bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">/{results?.[modalLevelIndex]?.prefix}</span>
             </DialogTitle>
           </DialogHeader>
 
           {/* Level tabs */}
           {results && results.length > 1 && (
-            <div className="flex gap-1 overflow-x-auto pb-2">
+            <div className="flex gap-1 overflow-x-auto pb-1">
               {results.map((l, i) => (
                 <button
                   key={i}
                   onClick={() => { setModalLevelIndex(i); openBlocksModal(i); }}
                   className={cn(
-                    "px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors",
-                    i === modalLevelIndex ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground hover:text-foreground"
+                    "px-2.5 py-1 rounded text-[11px] font-medium whitespace-nowrap transition-colors",
+                    i === modalLevelIndex ? "bg-primary text-primary-foreground" : "bg-secondary/60 text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {i + 1}. {l.label} <span className="opacity-60">({formatBigInt(l.totalBlocks)})</span>
@@ -407,17 +404,17 @@ export function PlannerView() {
             </div>
           )}
 
-          <div className="text-xs text-muted-foreground flex items-center gap-1">
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1">
             <Info className="w-3 h-3" />
             Mostrando <strong>1–{modalBlocks.length}</strong> de <strong>{formatBigInt(modalTotal)}</strong> blocos
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
+          <div className="flex-1 overflow-y-auto space-y-0.5 min-h-0 rounded-lg bg-secondary/20 p-1">
             {modalBlocks.map(block => (
-              <div key={block.index} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary/50 group">
-                <span className="text-xs text-muted-foreground w-8 text-right">{block.index}</span>
+              <div key={block.index} className="flex items-center gap-3 px-2.5 py-1.5 rounded hover:bg-secondary/50 group transition-colors">
+                <span className="text-[10px] text-muted-foreground w-8 text-right tabular-nums">{block.index}</span>
                 <code className="text-xs font-mono text-primary flex-1">{block.cidr}</code>
-                <span className="text-xs text-muted-foreground">{block.label}</span>
+                <span className="text-[10px] text-muted-foreground">{block.label}</span>
                 <button
                   onClick={() => { navigator.clipboard.writeText(block.cidr); toast.success('Copiado!'); }}
                   className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all"
@@ -429,8 +426,8 @@ export function PlannerView() {
           </div>
 
           {modalHasMore && (
-            <Button variant="outline" onClick={loadMoreBlocks} className="gap-2">
-              <ChevronDown className="w-4 h-4" /> Ver mais {BV_PAGE} blocos
+            <Button variant="outline" size="sm" onClick={loadMoreBlocks} className="gap-2">
+              <ChevronDown className="w-3.5 h-3.5" /> Ver mais {BV_PAGE} blocos
             </Button>
           )}
         </DialogContent>
