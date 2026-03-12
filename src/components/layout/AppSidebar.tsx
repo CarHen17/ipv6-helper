@@ -123,9 +123,9 @@ export function AppSidebar() {
               <SidebarMenuButton
                 onClick={toggleTheme}
                 tooltip={theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
-                className="text-muted-foreground hover:text-foreground transition-all duration-200 text-xs"
+                className="text-muted-foreground hover:text-foreground transition-all duration-200 text-sm"
               >
-                {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -133,9 +133,9 @@ export function AppSidebar() {
               <SidebarMenuButton
                 onClick={resetCalculadora}
                 tooltip="Limpar"
-                className="text-destructive hover:bg-destructive/10 transition-all duration-200 text-xs"
+                className="text-destructive hover:bg-destructive/10 transition-all duration-200 text-sm"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-4 h-4" />
                 <span>Limpar</span>
               </SidebarMenuButton>
             </SidebarMenuItem>

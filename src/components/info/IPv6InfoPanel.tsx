@@ -365,10 +365,10 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-1.5">
-      <Icon className="w-3 h-3 text-muted-foreground mt-0.5 shrink-0" />
+      <Icon className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <span className="text-[10px] text-muted-foreground block">{label}</span>
-        <span className={cn('text-[11px] text-foreground break-all', mono && 'font-mono', valueClass)}>
+        <span className="text-xs text-muted-foreground block">{label}</span>
+        <span className={cn('text-sm text-foreground break-all', mono && 'font-mono', valueClass)}>
           {value}
         </span>
       </div>
