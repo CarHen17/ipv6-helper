@@ -334,11 +334,11 @@ function RDAPInfoCard({ rdapInfo }: { rdapInfo: NonNullable<IPv6LookupResult['rd
           </div>
         )}
         {rdapInfo.events && rdapInfo.events.length > 0 && (
-          <div className="mt-2 pt-2 border-t border-border/40">
-            <span className="text-[10px] text-muted-foreground block mb-1">Eventos</span>
+          <div className="mt-2.5 pt-2.5 border-t border-border/40">
+            <span className="text-xs text-muted-foreground block mb-1.5">Eventos</span>
             {rdapInfo.events.map((e, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-[10px]">
-                <Clock className="w-2.5 h-2.5 text-muted-foreground shrink-0" />
+              <div key={i} className="flex items-center gap-1.5 text-xs">
+                <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground capitalize">{e.action}:</span>
                 <span className="text-foreground">{new Date(e.date).toLocaleDateString('pt-BR')}</span>
               </div>
