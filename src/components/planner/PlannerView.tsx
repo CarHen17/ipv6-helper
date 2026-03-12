@@ -214,7 +214,7 @@ export function PlannerView() {
                   value={level.label}
                   onChange={e => updateLevel(i, 'label', e.target.value)}
                   placeholder="Ex: Região"
-                  className="bg-secondary/60 flex-1 h-9 text-sm"
+                  className="bg-secondary/60 flex-1 h-8 text-xs"
                 />
                 <span className="text-muted-foreground font-bold text-sm">/</span>
                 <Input
