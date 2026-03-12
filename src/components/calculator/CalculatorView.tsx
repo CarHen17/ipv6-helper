@@ -230,6 +230,18 @@ export function CalculatorView() {
                     <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[11px] font-semibold tabular-nums">
                       {ctx.subRedesGeradas.length.toLocaleString('pt-BR')}
                     </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs gap-1.5 h-7 text-muted-foreground hover:text-primary"
+                      onClick={() => {
+                        ctx.resetCalculadora();
+                        ctx.setIpv6Input(ctx.ipv6Input || '');
+                      }}
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Novo cálculo
+                    </Button>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="relative">
