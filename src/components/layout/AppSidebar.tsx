@@ -45,7 +45,7 @@ export function AppSidebar() {
     <>
       <Sidebar collapsible="icon">
         <SidebarHeader className="border-b border-sidebar-border">
-          <div className="flex items-center gap-2.5 px-2 py-2">
+          <div className={cn("flex items-center gap-2.5 py-2", collapsed ? "justify-center px-0" : "px-2")}>
             <button
               onClick={collapsed ? toggleSidebar : undefined}
               className={cn(
