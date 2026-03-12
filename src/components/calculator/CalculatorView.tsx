@@ -657,8 +657,8 @@ function IPList({ ips, onCopy, maxHeight = '400px' }: { ips: { ip: string; numbe
     <div className="overflow-y-auto space-y-px rounded-lg bg-secondary/30 p-1" style={{ maxHeight }}>
       {ips.map(item => (
         <div key={item.number} className="flex items-center gap-2 px-2.5 py-1.5 rounded hover:bg-secondary/60 group transition-colors">
-          <span className="text-[10px] text-muted-foreground w-7 text-right shrink-0 tabular-nums">{item.number}</span>
-          <code className="text-xs font-mono text-foreground/90 flex-1 truncate">{item.ip}</code>
+          <span className="text-xs text-muted-foreground w-7 text-right shrink-0 tabular-nums">{item.number}</span>
+          <code className="text-sm font-mono text-foreground/90 flex-1 truncate">{item.ip}</code>
           <button
             onClick={() => onCopy(item.ip)}
             className="p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all"
