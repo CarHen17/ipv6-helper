@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { StepIndicator } from './StepIndicator';
-import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, type SubnetData } from '@/lib/ipv6-utils';
+import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, type SubnetData, type ComparisonResult } from '@/lib/ipv6-utils';
 import { exportToCSV, exportToTXT, exportToJSON, exportToExcel, exportSubnetsToCSV } from '@/lib/export-utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -30,10 +30,28 @@ export function CalculatorView() {
   const [exportTarget, setExportTarget] = useState<'main' | 'subnet' | 'aggregated'>('main');
   const [exportFilename, setExportFilename] = useState('ips_ipv6');
 
-  const filteredSubnets = useMemo(() => {
-    if (!searchQuery) return ctx.subRedesGeradas.slice(0, ctx.displayedCount);
-    return ctx.filterSubnets(searchQuery).slice(0, 200);
-  }, [searchQuery, ctx.subRedesGeradas, ctx.displayedCount, ctx.filterSubnets]);
+  // Each entry carries its real index to avoid O(n²) indexOf calls in the render loop
+  const filteredSubnets = useMemo((): { subnet: SubnetData; realIdx: number }[] => {
+    if (!searchQuery) {
+      return ctx.subRedesGeradas
+        .slice(0, ctx.displayedCount)
+        .map((subnet, i) => ({ subnet, realIdx: i }));
+    }
+    const q = searchQuery.toLowerCase();
+    const result: { subnet: SubnetData; realIdx: number }[] = [];
+    for (let i = 0; i < ctx.subRedesGeradas.length && result.length < 200; i++) {
+      const s = ctx.subRedesGeradas[i];
+      if (
+        s.subnet.toLowerCase().includes(q) ||
+        s.initial.toLowerCase().includes(q) ||
+        s.final.toLowerCase().includes(q) ||
+        s.network.toLowerCase().includes(q)
+      ) {
+        result.push({ subnet: s, realIdx: i });
+      }
+    }
+    return result;
+  }, [searchQuery, ctx.subRedesGeradas, ctx.displayedCount]);
 
   const handleCalcSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +79,7 @@ export function CalculatorView() {
     else if (exportTarget === 'subnet') ips = ctx.subnetIps;
     else if (exportTarget === 'aggregated') ips = ctx.aggregatedIps;
 
-    const fn = exportFilename.replace(/[\\/:*?"<>|]/g, '_').replace(/\.(csv|xlsx?|txt|json)$/i, '');
+    const fn = exportFilename.replace(/[\\/:*?"<>|]/g, '_').replace(/\.(csv|xlsx?|txt|json)$/i, '') || 'ips_ipv6';
 
     switch (format) {
       case 'csv': exportToCSV(ips, fn); break;
@@ -223,7 +241,7 @@ export function CalculatorView() {
                       className="text-xs gap-1"
                       onClick={() => {
                         exportSubnetsToCSV(
-                          searchQuery ? ctx.filterSubnets(searchQuery) : ctx.subRedesGeradas
+                          searchQuery ? filteredSubnets.map(f => f.subnet) : ctx.subRedesGeradas
                         );
                         toast.success('Sub-redes copiadas como CSV');
                       }}
@@ -253,10 +271,7 @@ export function CalculatorView() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredSubnets.map((subnet, displayIdx) => {
-                        const realIdx = searchQuery
-                          ? ctx.subRedesGeradas.indexOf(subnet)
-                          : displayIdx;
+                      {filteredSubnets.map(({ subnet, realIdx }) => {
                         const isSelected = ctx.selectedIndices.has(realIdx);
                         const isIndividual = ctx.individualSelectedIndex === realIdx;
 
@@ -334,7 +349,7 @@ export function CalculatorView() {
                     "bg-muted text-muted-foreground"
                   )}>
                     {reverseResult.found
-                      ? `Encontrado na sub-rede: ${shortenIPv6(reverseResult.subnet.subnet)} (índice ${reverseResult.index + 1})`
+                      ? `Encontrado na sub-rede: ${shortenIPv6(reverseResult.subnet?.subnet ?? '')} (índice ${(reverseResult.index ?? 0) + 1})`
                       : reverseResult.error || 'Endereço não encontrado nas sub-redes geradas'}
                   </div>
                 )}
@@ -571,7 +586,7 @@ function IPList({ ips, onCopy, maxHeight = '400px' }: { ips: { ip: string; numbe
   );
 }
 
-function ComparisonInfo({ result, reason }: { result: any; reason: string }) {
+function ComparisonInfo({ result, reason }: { result: ComparisonResult; reason: string }) {
   const labels: Record<string, string> = {
     identical: 'Os blocos são idênticos',
     b2_in_b1: 'Bloco B está contido em Bloco A',

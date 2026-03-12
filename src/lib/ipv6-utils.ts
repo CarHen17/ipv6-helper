@@ -315,8 +315,8 @@ export function canAggregateBlocks(blocks: BlockData[]): AggregationResult {
         originalBlocks: sortedBlocks.map(b => b.subnet || `${b.network}/${b.prefix}`),
       },
     };
-  } catch (error: any) {
-    return { canAggregate: false, reason: 'Erro ao processar blocos: ' + error.message };
+  } catch (error: unknown) {
+    return { canAggregate: false, reason: 'Erro ao processar blocos: ' + (error instanceof Error ? error.message : String(error)) };
   }
 }
 
@@ -341,8 +341,8 @@ export function compareBlocks(b1: BlockData, b2: BlockData): ComparisonResult {
     else relationship = 'disjoint';
 
     return { relationship, net1, net2, end1, end2, size1, size2 };
-  } catch (error: any) {
-    return { relationship: 'error', error: error.message };
+  } catch (error: unknown) {
+    return { relationship: 'error', error: error instanceof Error ? error.message : String(error) };
   }
 }
 
@@ -365,8 +365,8 @@ export function findSubnetForIP(ip: string, subnets: SubnetData[]): { found: boo
       }
     }
     return { found: false };
-  } catch (error: any) {
-    return { found: false, error: error.message };
+  } catch (error: unknown) {
+    return { found: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
 
