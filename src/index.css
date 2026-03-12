@@ -52,19 +52,19 @@
   }
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: hsl(215 45% 10%); }
-::-webkit-scrollbar-thumb { background: hsl(210 100% 50%); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: hsl(210 100% 60%); }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(215 25% 25%); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(210 100% 50%); }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-  20%, 40%, 60%, 80% { transform: translateX(4px); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
 }
-.animate-fadeInUp { animation: fadeInUp 0.35s ease; }
-.animate-shake { animation: shake 0.5s ease-in-out; }
+.animate-fadeInUp { animation: fadeInUp 0.3s ease; }
+.animate-shake { animation: shake 0.4s ease-in-out; }

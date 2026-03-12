@@ -28,26 +28,26 @@ export function HistoryView() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-4 md:p-6 lg:p-8 max-w-2xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
-            <Clock className="w-6 h-6 text-primary" /> Histórico
+          <h1 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-3">
+            <Clock className="w-5 h-5 text-primary" /> Histórico
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Cálculos recentes · clique para restaurar</p>
         </div>
         {history.length > 0 && (
           <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive" onClick={() => { if (confirm('Apagar todo o histórico?')) { clearHistory(); toast.info('Histórico apagado'); } }}>
-            <Trash2 className="w-4 h-4" /> Limpar
+            <Trash2 className="w-3.5 h-3.5" /> Limpar
           </Button>
         )}
       </div>
 
       {history.length === 0 ? (
-        <div className="bg-card rounded-xl border border-border p-12 text-center">
-          <Clock className="w-12 h-12 text-muted-foreground/40 mx-auto mb-4" />
-          <p className="text-muted-foreground">Nenhum cálculo no histórico ainda.</p>
-          <p className="text-xs text-muted-foreground/70 mt-2">Os cálculos aparecem aqui automaticamente.</p>
+        <div className="bg-card rounded-xl border border-border p-16 text-center">
+          <Clock className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
+          <p className="text-sm text-muted-foreground">Nenhum cálculo no histórico ainda.</p>
+          <p className="text-xs text-muted-foreground/60 mt-2">Os cálculos aparecem aqui automaticamente.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -55,11 +55,11 @@ export function HistoryView() {
             {history.map((entry, i) => (
               <motion.div
                 key={entry.timestamp}
-                initial={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, x: -16 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
+                transition={{ delay: i * 0.04, duration: 0.25 }}
                 onClick={() => restoreEntry(entry)}
-                className="bg-card rounded-xl border border-border p-4 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 group flex items-center justify-between"
+                className="bg-card rounded-xl border border-border/60 p-4 cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 group flex items-center justify-between"
               >
                 <div>
                   <code className="text-sm font-semibold text-primary font-mono">{entry.block}</code>

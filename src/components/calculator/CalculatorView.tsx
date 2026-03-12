@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import {
   Calculator, Search, Copy, Download, ChevronDown, Check, X,
   List, Plus, RotateCcw, Info, Layers, ArrowLeftRight, TriangleAlert,
-  FileText, FileSpreadsheet, FileCode, FileDown, Loader2
+  FileText, FileSpreadsheet, FileCode, Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -21,6 +21,13 @@ const STEPS = [
   { label: 'Gerenciar Sub-redes' },
 ];
 
+const fadeUp = {
+  initial: { opacity: 0, y: 16 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+  transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] },
+};
+
 export function CalculatorView() {
   const ctx = useCalculator();
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,7 +37,6 @@ export function CalculatorView() {
   const [exportTarget, setExportTarget] = useState<'main' | 'subnet' | 'aggregated'>('main');
   const [exportFilename, setExportFilename] = useState('ips_ipv6');
 
-  // Each entry carries its real index to avoid O(n²) indexOf calls in the render loop
   const filteredSubnets = useMemo((): { subnet: SubnetData; realIdx: number }[] => {
     if (!searchQuery) {
       return ctx.subRedesGeradas
@@ -62,7 +68,7 @@ export function CalculatorView() {
   const handleReverseSearch = () => {
     if (!reverseSearchIp.trim()) return;
     if (!isValidIPv6Address(reverseSearchIp.trim())) {
-      setReverseResult({ error: 'Endereço IPv6 inválido' });
+      setReverseResult({ found: false, error: 'Endereço IPv6 inválido' });
       return;
     }
     const result = ctx.reverseSearch(reverseSearchIp.trim());
@@ -96,24 +102,26 @@ export function CalculatorView() {
     : '';
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-foreground">Calculadora de Sub-redes</h1>
+      <div className="mb-8">
+        <h1 className="text-xl md:text-2xl font-bold text-foreground tracking-tight">
+          Calculadora de Sub-redes
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">Divisão e gerenciamento de blocos IPv6</p>
       </div>
 
       {/* Step Indicator */}
-      <div className="bg-card rounded-xl border border-border p-4 mb-6">
+      <div className="bg-card/60 backdrop-blur-sm rounded-xl border border-border/60 p-4 mb-8">
         <StepIndicator currentStep={ctx.currentStep} steps={STEPS} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
         <div className="space-y-6">
           {/* Step 1: Input */}
-          <motion.div className="bg-card rounded-xl border border-border p-6" layout>
+          <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6" layout>
             <form onSubmit={handleCalcSubmit}>
-              <label className="block text-sm font-semibold text-foreground mb-3">
+              <label className="block text-sm font-medium text-foreground mb-3">
                 Insira um endereço IPv6 no formato CIDR:
               </label>
               <div className="flex gap-3">
@@ -122,13 +130,13 @@ export function CalculatorView() {
                   onChange={e => ctx.setIpv6Input(e.target.value)}
                   placeholder="Ex.: 2001:db8::/41"
                   className={cn(
-                    "font-mono bg-secondary border-border flex-1",
+                    "font-mono bg-secondary/60 border-border/60 flex-1 h-10",
                     ctx.errorMessage && "animate-shake border-destructive"
                   )}
                 />
-                <Button type="submit" className="gap-2">
+                <Button type="submit" className="gap-2 h-10 px-5">
                   <Calculator className="w-4 h-4" />
-                  Calcular Sub-redes
+                  <span className="hidden sm:inline">Calcular</span>
                 </Button>
               </div>
               <AnimatePresence>
@@ -137,11 +145,11 @@ export function CalculatorView() {
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm"
+                    className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm"
                   >
                     <p>{ctx.errorMessage}</p>
                     {ctx.errorSuggestion && (
-                      <p className="text-xs mt-1 opacity-80">💡 {ctx.errorSuggestion}</p>
+                      <p className="text-xs mt-1 opacity-70">💡 {ctx.errorSuggestion}</p>
                     )}
                   </motion.div>
                 )}
@@ -152,14 +160,9 @@ export function CalculatorView() {
           {/* Step 2: Prefix Selection */}
           <AnimatePresence>
             {ctx.currentStep >= 2 && ctx.mainBlock && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-card rounded-xl border border-border p-6"
-              >
-                <h3 className="text-sm font-semibold text-foreground mb-4">Escolha o prefixo para divisão:</h3>
-                <div className="flex flex-wrap gap-2">
+              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5 md:p-6">
+                <h3 className="text-sm font-medium text-foreground mb-4">Escolha o prefixo para divisão:</h3>
+                <div className="flex flex-wrap gap-1.5">
                   {Array.from({ length: 128 - ctx.mainBlock.prefix }, (_, i) => ctx.mainBlock!.prefix + 1 + i).map(prefix => {
                     const isCommon = COMMON_PREFIXES[prefix];
                     return (
@@ -167,10 +170,10 @@ export function CalculatorView() {
                         key={prefix}
                         onClick={() => ctx.selecionarPrefixo(prefix)}
                         className={cn(
-                          "px-3 py-1.5 rounded-md text-xs font-mono font-medium transition-all duration-200 border",
+                          "px-2.5 py-1 rounded-md text-xs font-mono font-medium transition-all duration-150 border",
                           isCommon
-                            ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
-                            : "border-border bg-secondary text-secondary-foreground hover:border-primary/30 hover:bg-primary/5"
+                            ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-sm hover:shadow-primary/10"
+                            : "border-border/40 bg-secondary/50 text-secondary-foreground hover:border-primary/20 hover:bg-primary/5"
                         )}
                         title={isCommon || undefined}
                       >
@@ -186,15 +189,10 @@ export function CalculatorView() {
           {/* Loading */}
           <AnimatePresence>
             {ctx.isLoading && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="bg-card rounded-xl border border-border p-6 flex flex-col items-center gap-4"
-              >
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-8 flex flex-col items-center gap-4">
+                <Loader2 className="w-7 h-7 animate-spin text-primary" />
                 <p className="text-sm text-muted-foreground">Gerando sub-redes ({ctx.loadingProgress}%)...</p>
-                <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                <div className="w-full max-w-xs h-1.5 bg-secondary rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-primary rounded-full"
                     animate={{ width: `${ctx.loadingProgress}%` }}
@@ -207,16 +205,12 @@ export function CalculatorView() {
           {/* Step 3: Results Table */}
           <AnimatePresence>
             {ctx.subRedesGeradas.length > 0 && !ctx.isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-card rounded-xl border border-border overflow-hidden"
-              >
+              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border overflow-hidden">
                 {/* Table header bar */}
-                <div className="p-4 border-b border-border flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-sm font-semibold text-foreground">Sub-redes Geradas</h3>
-                    <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-bold">
+                <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <h3 className="text-sm font-medium text-foreground">Sub-redes</h3>
+                    <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary text-[11px] font-semibold tabular-nums">
                       {ctx.subRedesGeradas.length.toLocaleString('pt-BR')}
                     </span>
                   </div>
@@ -227,36 +221,36 @@ export function CalculatorView() {
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Filtrar..."
-                        className="pl-8 h-8 text-xs w-48 bg-secondary"
+                        className="pl-8 h-8 text-xs w-44 bg-secondary/50 border-border/40"
                       />
                     </div>
                     {ctx.selectedIndices.size === 1 && (
-                      <Button size="sm" variant="outline" className="text-xs gap-1" onClick={ctx.generateSubnetIps}>
-                        <List className="w-3.5 h-3.5" /> Gerar IPs
+                      <Button size="sm" variant="outline" className="text-xs gap-1 h-8" onClick={ctx.generateSubnetIps}>
+                        <List className="w-3.5 h-3.5" /> IPs
                       </Button>
                     )}
                     <Button
                       size="sm"
                       variant="outline"
-                      className="text-xs gap-1"
+                      className="text-xs gap-1 h-8"
                       onClick={() => {
                         exportSubnetsToCSV(
                           searchQuery ? filteredSubnets.map(f => f.subnet) : ctx.subRedesGeradas
                         );
-                        toast.success('Sub-redes copiadas como CSV');
+                        toast.success('Sub-redes exportadas como CSV');
                       }}
                     >
-                      <Copy className="w-3.5 h-3.5" /> CSV
+                      <Download className="w-3.5 h-3.5" /> CSV
                     </Button>
                   </div>
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+                <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
                   <table className="w-full text-xs">
-                    <thead className="sticky top-0 bg-secondary z-10">
+                    <thead className="sticky top-0 bg-secondary/80 backdrop-blur-sm z-10">
                       <tr>
-                        <th className="p-2 w-10">
+                        <th className="p-2.5 w-10">
                           <input
                             type="checkbox"
                             checked={ctx.selectedIndices.size === ctx.subRedesGeradas.length && ctx.subRedesGeradas.length > 0}
@@ -264,13 +258,13 @@ export function CalculatorView() {
                             className="rounded"
                           />
                         </th>
-                        <th className="p-2 text-left font-semibold text-muted-foreground">Sub-rede</th>
-                        <th className="p-2 text-left font-semibold text-muted-foreground">Inicial</th>
-                        <th className="p-2 text-left font-semibold text-muted-foreground">Final</th>
-                        <th className="p-2 text-left font-semibold text-muted-foreground">Rede</th>
+                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Sub-rede</th>
+                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Inicial</th>
+                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Final</th>
+                        <th className="p-2.5 text-left font-medium text-muted-foreground uppercase tracking-wider text-[10px]">Rede</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="divide-y divide-border/30">
                       {filteredSubnets.map(({ subnet, realIdx }) => {
                         const isSelected = ctx.selectedIndices.has(realIdx);
                         const isIndividual = ctx.individualSelectedIndex === realIdx;
@@ -279,14 +273,14 @@ export function CalculatorView() {
                           <tr
                             key={realIdx}
                             className={cn(
-                              "border-t border-border/50 cursor-pointer transition-colors duration-150",
-                              isSelected && "bg-primary/10",
-                              isIndividual && "bg-accent/15 border-l-2 border-l-primary",
-                              !isSelected && !isIndividual && "hover:bg-secondary/50"
+                              "cursor-pointer transition-colors duration-100",
+                              isSelected && "bg-primary/8",
+                              isIndividual && "bg-accent/10 border-l-2 border-l-primary",
+                              !isSelected && !isIndividual && "hover:bg-secondary/30"
                             )}
                             onClick={() => ctx.selectIndividual(realIdx)}
                           >
-                            <td className="p-2" onClick={e => e.stopPropagation()}>
+                            <td className="p-2.5" onClick={e => e.stopPropagation()}>
                               <input
                                 type="checkbox"
                                 checked={isSelected}
@@ -294,10 +288,10 @@ export function CalculatorView() {
                                 className="rounded"
                               />
                             </td>
-                            <td className="p-2 font-mono text-primary">{shortenIPv6(subnet.subnet)}</td>
-                            <td className="p-2 font-mono">{shortenIPv6(subnet.initial)}</td>
-                            <td className="p-2 font-mono">{shortenIPv6(subnet.final)}</td>
-                            <td className="p-2 font-mono">{shortenIPv6(subnet.network)}</td>
+                            <td className="p-2.5 font-mono text-primary">{shortenIPv6(subnet.subnet)}</td>
+                            <td className="p-2.5 font-mono text-foreground/80">{shortenIPv6(subnet.initial)}</td>
+                            <td className="p-2.5 font-mono text-foreground/80">{shortenIPv6(subnet.final)}</td>
+                            <td className="p-2.5 font-mono text-foreground/60">{shortenIPv6(subnet.network)}</td>
                           </tr>
                         );
                       })}
@@ -307,10 +301,10 @@ export function CalculatorView() {
 
                 {/* Load more */}
                 {!searchQuery && ctx.displayedCount < ctx.subRedesGeradas.length && (
-                  <div className="p-4 border-t border-border text-center">
-                    <Button variant="outline" size="sm" onClick={ctx.loadMore} className="gap-2">
-                      <ChevronDown className="w-4 h-4" />
-                      Carregar mais ({ctx.subRedesGeradas.length - ctx.displayedCount} restantes)
+                  <div className="p-3 border-t border-border/40 text-center">
+                    <Button variant="ghost" size="sm" onClick={ctx.loadMore} className="gap-2 text-xs text-muted-foreground hover:text-foreground">
+                      <ChevronDown className="w-3.5 h-3.5" />
+                      Carregar mais ({(ctx.subRedesGeradas.length - ctx.displayedCount).toLocaleString('pt-BR')} restantes)
                     </Button>
                   </div>
                 )}
@@ -321,12 +315,8 @@ export function CalculatorView() {
           {/* Reverse Search */}
           <AnimatePresence>
             {ctx.subRedesGeradas.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-card rounded-xl border border-border p-6"
-              >
-                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5">
+                <h3 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
                   <Search className="w-4 h-4 text-primary" /> Busca Reversa
                 </h3>
                 <div className="flex gap-2">
@@ -334,18 +324,18 @@ export function CalculatorView() {
                     value={reverseSearchIp}
                     onChange={e => setReverseSearchIp(e.target.value)}
                     placeholder="Ex.: 2001:db8::1"
-                    className="font-mono bg-secondary flex-1"
+                    className="font-mono bg-secondary/60 flex-1"
                     onKeyDown={e => e.key === 'Enter' && handleReverseSearch()}
                   />
-                  <Button onClick={handleReverseSearch} variant="outline" className="gap-1">
+                  <Button onClick={handleReverseSearch} variant="outline" className="gap-1.5">
                     <Search className="w-4 h-4" /> Buscar
                   </Button>
                 </div>
                 {reverseResult && (
                   <div className={cn(
                     "mt-3 p-3 rounded-lg text-sm",
-                    reverseResult.found ? "bg-green-500/10 border border-green-500/30 text-green-400" :
-                    reverseResult.error ? "bg-warning/10 border border-warning/30 text-warning" :
+                    reverseResult.found ? "bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20 text-[hsl(var(--success))]" :
+                    reverseResult.error ? "bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-[hsl(var(--warning))]" :
                     "bg-muted text-muted-foreground"
                   )}>
                     {reverseResult.found
@@ -360,25 +350,20 @@ export function CalculatorView() {
           {/* Subnet IPs */}
           <AnimatePresence>
             {ctx.subnetIpsVisible && ctx.subnetIpsBlock && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="bg-card rounded-xl border border-border p-6"
-              >
+              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold">
-                    IPs da Sub-rede: <code className="text-primary">{shortenIPv6(ctx.subnetIpsBlock.subnet)}</code>
+                  <h3 className="text-sm font-medium">
+                    IPs da Sub-rede: <code className="text-primary text-xs">{shortenIPv6(ctx.subnetIpsBlock.subnet)}</code>
                   </h3>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={ctx.generateMoreSubnetIps} className="gap-1 text-xs">
-                      <Plus className="w-3 h-3" /> Mais 50
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="ghost" onClick={ctx.generateMoreSubnetIps} className="gap-1 text-xs h-7">
+                      <Plus className="w-3 h-3" /> +50
                     </Button>
-                    <Button size="sm" variant="outline" onClick={ctx.resetSubnetIps} className="gap-1 text-xs">
-                      <RotateCcw className="w-3 h-3" /> Reset
+                    <Button size="sm" variant="ghost" onClick={ctx.resetSubnetIps} className="gap-1 text-xs h-7">
+                      <RotateCcw className="w-3 h-3" />
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => { setExportTarget('subnet'); setExportModalOpen(true); }} className="gap-1 text-xs">
-                      <Download className="w-3 h-3" /> Exportar
+                    <Button size="sm" variant="ghost" onClick={() => { setExportTarget('subnet'); setExportModalOpen(true); }} className="gap-1 text-xs h-7">
+                      <Download className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
@@ -395,12 +380,13 @@ export function CalculatorView() {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-card rounded-xl border border-border p-5 sticky top-6"
+                transition={{ duration: 0.3 }}
+                className="bg-card rounded-xl border border-border p-5 sticky top-16"
               >
-                <h3 className="text-sm font-semibold flex items-center gap-2 mb-4">
+                <h3 className="text-sm font-medium flex items-center gap-2 mb-4">
                   <Info className="w-4 h-4 text-primary" />
                   {ctx.individualSelectedIndex !== null ? (
-                    <span className="text-green-400">Bloco Selecionado</span>
+                    <span className="text-[hsl(var(--success))]">Bloco Selecionado</span>
                   ) : (
                     'Informações do Bloco'
                   )}
@@ -413,7 +399,7 @@ export function CalculatorView() {
 
                 {/* Main block IPs toggle */}
                 {ctx.individualSelectedIndex === null && (
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-5 space-y-3">
                     <Button
                       size="sm"
                       variant="outline"
@@ -428,13 +414,13 @@ export function CalculatorView() {
                       {ctx.mainBlockIpsVisible && (
                         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
                           <div className="flex gap-1 mb-2">
-                            <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1" onClick={ctx.generateMoreMainBlockIps}>
+                            <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1 h-7" onClick={ctx.generateMoreMainBlockIps}>
                               <Plus className="w-3 h-3" /> +50
                             </Button>
-                            <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1" onClick={ctx.resetMainBlockIps}>
-                              <RotateCcw className="w-3 h-3" /> Reset
+                            <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1 h-7" onClick={ctx.resetMainBlockIps}>
+                              <RotateCcw className="w-3 h-3" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1" onClick={() => { setExportTarget('main'); setExportModalOpen(true); }}>
+                            <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1 h-7" onClick={() => { setExportTarget('main'); setExportModalOpen(true); }}>
                               <Download className="w-3 h-3" />
                             </Button>
                           </div>
@@ -451,11 +437,11 @@ export function CalculatorView() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="mt-4 pt-4 border-t border-border"
+                      className="mt-5 pt-5 border-t border-border/40"
                     >
                       {ctx.aggregationResult.canAggregate ? (
                         <div>
-                          <h4 className="text-xs font-semibold flex items-center gap-1.5 mb-3">
+                          <h4 className="text-xs font-medium flex items-center gap-1.5 mb-3">
                             <Layers className="w-3.5 h-3.5 text-primary" /> Bloco Agregado
                           </h4>
                           <div className="space-y-2">
@@ -473,11 +459,11 @@ export function CalculatorView() {
                             {ctx.aggregatedIpsVisible && (
                               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-2">
                                 <div className="flex gap-1 mb-2">
-                                  <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1" onClick={ctx.generateMoreAggregatedIps}>
+                                  <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1 h-7" onClick={ctx.generateMoreAggregatedIps}>
                                     <Plus className="w-3 h-3" /> +50
                                   </Button>
-                                  <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1" onClick={ctx.resetAggregatedIps}>
-                                    <RotateCcw className="w-3 h-3" /> Reset
+                                  <Button size="sm" variant="ghost" className="text-xs gap-1 flex-1 h-7" onClick={ctx.resetAggregatedIps}>
+                                    <RotateCcw className="w-3 h-3" />
                                   </Button>
                                 </div>
                                 <IPList ips={ctx.aggregatedIps} onCopy={copyToClipboard} maxHeight="250px" />
@@ -487,16 +473,16 @@ export function CalculatorView() {
                         </div>
                       ) : ctx.comparisonResult ? (
                         <div>
-                          <h4 className="text-xs font-semibold flex items-center gap-1.5 mb-3">
+                          <h4 className="text-xs font-medium flex items-center gap-1.5 mb-3">
                             <ArrowLeftRight className="w-3.5 h-3.5 text-primary" /> Comparação
                           </h4>
                           <ComparisonInfo result={ctx.comparisonResult} reason={ctx.aggregationResult.reason} />
                         </div>
                       ) : (
-                        <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/30 text-sm">
-                          <TriangleAlert className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                        <div className="flex items-start gap-2 p-3 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20 text-sm">
+                          <TriangleAlert className="w-4 h-4 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-semibold text-warning text-xs">Agregação não possível</p>
+                            <p className="font-medium text-[hsl(var(--warning))] text-xs">Agregação não possível</p>
                             <p className="text-xs text-muted-foreground mt-1">{ctx.aggregationResult.reason}</p>
                           </div>
                         </div>
@@ -534,17 +520,17 @@ export function CalculatorView() {
                 <button
                   key={opt.format}
                   onClick={() => handleExport(opt.format)}
-                  className="flex flex-col items-center p-4 rounded-lg border border-border bg-secondary hover:border-primary hover:bg-primary/5 transition-all duration-200 gap-2"
+                  className="flex flex-col items-center p-4 rounded-lg border border-border/60 bg-secondary/40 hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 gap-2"
                 >
                   <opt.icon className="w-6 h-6 text-primary" />
-                  <span className="text-sm font-semibold">{opt.label}</span>
-                  <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                  <span className="text-sm font-medium">{opt.label}</span>
+                  <span className="text-[11px] text-muted-foreground">{opt.desc}</span>
                 </button>
               ))}
             </div>
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Nome do arquivo:</label>
-              <Input value={exportFilename} onChange={e => setExportFilename(e.target.value)} className="bg-secondary" />
+              <Input value={exportFilename} onChange={e => setExportFilename(e.target.value)} className="bg-secondary/60" />
             </div>
           </div>
         </DialogContent>
@@ -555,11 +541,11 @@ export function CalculatorView() {
 
 function InfoRow({ label, value, onCopy }: { label: string; value: string; onCopy: () => void }) {
   return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-muted-foreground shrink-0">{label}:</span>
+    <div className="flex items-center justify-between gap-2 group">
+      <span className="text-[11px] text-muted-foreground shrink-0 uppercase tracking-wider">{label}</span>
       <div className="flex items-center gap-1.5 min-w-0">
         <code className="text-xs font-mono text-foreground truncate">{value}</code>
-        <button onClick={onCopy} className="p-1 rounded hover:bg-primary/10 transition-colors shrink-0">
+        <button onClick={onCopy} className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all shrink-0">
           <Copy className="w-3 h-3 text-muted-foreground hover:text-primary" />
         </button>
       </div>
@@ -569,11 +555,11 @@ function InfoRow({ label, value, onCopy }: { label: string; value: string; onCop
 
 function IPList({ ips, onCopy, maxHeight = '400px' }: { ips: { ip: string; number: number }[]; onCopy: (ip: string) => void; maxHeight?: string }) {
   return (
-    <div className="overflow-y-auto space-y-0.5" style={{ maxHeight }}>
+    <div className="overflow-y-auto space-y-px rounded-lg bg-secondary/30 p-1" style={{ maxHeight }}>
       {ips.map(item => (
-        <div key={item.number} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-secondary/50 group">
-          <span className="text-xs text-muted-foreground w-8 text-right shrink-0">{item.number}.</span>
-          <code className="text-xs font-mono text-foreground flex-1 truncate">{item.ip}</code>
+        <div key={item.number} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-secondary/60 group transition-colors">
+          <span className="text-[10px] text-muted-foreground w-7 text-right shrink-0 tabular-nums">{item.number}</span>
+          <code className="text-xs font-mono text-foreground/90 flex-1 truncate">{item.ip}</code>
           <button
             onClick={() => onCopy(item.ip)}
             className="p-0.5 rounded opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all"
@@ -599,8 +585,8 @@ function ComparisonInfo({ result, reason }: { result: ComparisonResult; reason: 
   return (
     <div className="space-y-2">
       <p className="text-xs text-foreground">{labels[result.relationship] || 'Relação desconhecida'}</p>
-      <div className="flex items-start gap-2 p-2 rounded bg-warning/10 border border-warning/30">
-        <TriangleAlert className="w-3.5 h-3.5 text-warning shrink-0 mt-0.5" />
+      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-[hsl(var(--warning))]/10 border border-[hsl(var(--warning))]/20">
+        <TriangleAlert className="w-3.5 h-3.5 text-[hsl(var(--warning))] shrink-0 mt-0.5" />
         <p className="text-xs text-muted-foreground">{reason}</p>
       </div>
     </div>
