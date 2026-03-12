@@ -93,7 +93,7 @@ const IPV6_TYPES: { test: (bigint: bigint) => boolean; info: IPv6TypeInfo }[] = 
   },
   {
     // fc00::/7 - Unique Local (ULA)
-    test: (n) => (n >> 121n) === 0x7en >> 1n,
+    test: (n) => (n >> 121n) === 0x7en,
     info: { type: 'Unique Local (ULA)', description: 'Endereço local único, equivalente ao IPv4 privado (10.x, 172.x, 192.168.x)', rfc: 'RFC 4193', scope: 'Organização', routable: false, color: 'green' },
   },
   {
@@ -273,8 +273,11 @@ export function validateBlock(input: string): BlockValidation {
 export async function lookupRDAP(ip: string): Promise<RDAPInfo | null> {
   try {
     // Use CIDR notation if available, otherwise just the address
-    const cidr = ip.includes('/') ? ip : `${ip}/128`;
-    const res = await fetch(`https://rdap.org/ip/${encodeURIComponent(cidr)}`, {
+    // Note: do NOT use encodeURIComponent on the full CIDR — it encodes '/' as '%2F'
+    // which breaks RDAP path routing. Encode only the address part.
+    const addr = ip.split('/')[0];
+    const prefixLen = ip.includes('/') ? ip.split('/')[1] : '128';
+    const res = await fetch(`https://rdap.org/ip/${encodeURIComponent(addr)}/${prefixLen}`, {
       headers: { 'Accept': 'application/rdap+json' },
     });
     
@@ -325,7 +328,8 @@ export async function fullIPv6Lookup(input: string): Promise<IPv6LookupResult> {
   const validation = validateBlock(input);
   const result: IPv6LookupResult = {
     input,
-    isValid: validation.isAligned,
+    // isValid = input parsed as a valid IPv6 CIDR (not just whether host bits are zero)
+    isValid: validation.message !== 'Formato CIDR inválido' && validation.message !== 'Erro ao validar o bloco',
     typeInfo,
     validation,
   };
