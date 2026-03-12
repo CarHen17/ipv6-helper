@@ -79,7 +79,7 @@ function ResultRow({ icon: Icon, label, value, fullValue, highlight = false }: {
           className={cn(
             "p-1.5 rounded-md transition-all",
             copied
-              ? "text-green-500 bg-green-500/10"
+              ? "text-primary bg-primary/10"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary"
           )}
           title="Copiar"
