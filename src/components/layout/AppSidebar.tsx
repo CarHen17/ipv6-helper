@@ -69,7 +69,7 @@ export function AppSidebar() {
                   className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-all duration-200 shrink-0 hover:scale-105"
                   title="Recolher menu"
                 >
-                  <PanelLeftClose className="w-3.5 h-3.5" />
+                  <PanelLeftClose className="w-4 h-4" />
                 </button>
               </>
             )}
