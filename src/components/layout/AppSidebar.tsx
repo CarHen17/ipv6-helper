@@ -78,7 +78,7 @@ export function AppSidebar() {
 
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel className="text-[10px]">Navegação</SidebarGroupLabel>
+            <SidebarGroupLabel className="text-xs">Navegação</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {navItems.map(item => {
