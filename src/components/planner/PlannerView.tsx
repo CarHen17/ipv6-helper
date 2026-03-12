@@ -332,9 +332,9 @@ export function PlannerView() {
             {/* Summary table */}
             <div className="bg-card rounded-xl border border-border overflow-hidden">
               <div className="px-4 py-3 border-b border-border/60">
-                <h3 className="text-sm font-medium flex items-center gap-2">
-                  <TableIcon className="w-4 h-4 text-primary" /> Tabela de resumo
-                </h3>
+               <h3 className="text-xs font-medium flex items-center gap-2">
+                 <TableIcon className="w-3.5 h-3.5 text-primary" /> Tabela de resumo
+               </h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
