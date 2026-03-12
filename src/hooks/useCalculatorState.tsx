@@ -59,6 +59,7 @@ interface CalculatorContextType extends CalculatorState {
   calcularSubRedes: () => boolean;
   selecionarPrefixo: (prefix: number) => void;
   resetCalculadora: () => void;
+  goBackToStep: (step: number) => void;
   loadMore: () => void;
   toggleSelectAll: () => void;
   toggleSelect: (index: number) => void;
