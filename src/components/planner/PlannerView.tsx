@@ -262,11 +262,11 @@ export function PlannerView() {
 
         {/* Actions */}
          <div className="p-4 md:p-5 flex gap-2">
-           <Button variant="outline" size="sm" onClick={clearPlanner} className="gap-1.5 h-8 flex-[1] text-xs">
-             <Trash2 className="w-3.5 h-3.5" /> Limpar
+           <Button variant="outline" size="sm" onClick={clearPlanner} className="gap-1.5 h-7 px-3 text-[11px]">
+             <Trash2 className="w-3 h-3" /> Limpar
            </Button>
-           <Button size="sm" onClick={() => calculate()} className="gap-1.5 h-8 flex-[2] text-xs">
-             <Calculator className="w-3.5 h-3.5" /> Calcular Hierarquia
+           <Button size="sm" onClick={() => calculate()} className="gap-1.5 h-7 px-4 text-[11px]">
+             <Calculator className="w-3 h-3" /> Calcular Hierarquia
            </Button>
          </div>
       </div>
