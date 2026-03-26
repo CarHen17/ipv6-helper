@@ -255,7 +255,7 @@ export function OverlapView() {
                       <AlertTriangle className="w-4 h-4 text-primary" />
                       Conflitos ({report.findings.length})
                     </h2>
-                    <div className="flex gap-1.5">
+                    <div className="flex gap-1.5 flex-wrap justify-end">
                       {[
                         { key: null, label: 'Todos' },
                         { key: 'duplicate', label: 'Duplicados' },
@@ -286,8 +286,8 @@ export function OverlapView() {
                     </div>
                   </div>
 
-                  <div className="max-h-[400px] overflow-y-auto">
-                    <table className="w-full text-left">
+                  <div className="max-h-[400px] overflow-y-auto overflow-x-auto">
+                    <table className="w-full text-left min-w-[480px]">
                       <thead>
                         <tr className="border-b border-border text-[11px] uppercase tracking-wider text-muted-foreground">
                           <th className="py-2 px-3 font-medium">Tipo</th>
