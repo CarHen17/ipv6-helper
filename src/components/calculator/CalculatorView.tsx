@@ -3,6 +3,7 @@ import { useCalculator } from '@/hooks/useCalculatorState';
 import { StepIndicator } from './StepIndicator';
 import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, IPV6_CONFIG, type SubnetData, type ComparisonResult } from '@/lib/ipv6-utils';
 import { exportToCSV, exportToTXT, exportToJSON, exportToExcel, exportSubnetsToCSV } from '@/lib/export-utils';
+import { fetchMyIP } from '@/lib/ping6-api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import {
   Calculator, Search, Copy, Download, ChevronDown, X,
   List, Plus, RotateCcw, Info, Layers, ArrowLeftRight, TriangleAlert,
-  FileText, FileSpreadsheet, FileCode, Loader2, AlertTriangle
+  FileText, FileSpreadsheet, FileCode, Loader2, AlertTriangle, Locate
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -46,6 +47,24 @@ export function CalculatorView() {
   const [exportFilename, setExportFilename] = useState('ips_ipv6');
   const [subnetIpsModalOpen, setSubnetIpsModalOpen] = useState(false);
   const [confirmPrefix, setConfirmPrefix] = useState<{ prefix: number; count: bigint } | null>(null);
+  const [fetchingMyIp, setFetchingMyIp] = useState(false);
+
+  const handleUseMyIp = async () => {
+    setFetchingMyIp(true);
+    try {
+      const result = await fetchMyIP();
+      if (!result.isIPv6) {
+        toast.error('Você está conectado via IPv4. Insira um endereço manualmente.');
+        return;
+      }
+      ctx.setIpv6Input(result.ip);
+      toast.success(`IP detectado: ${result.ip}`);
+    } catch {
+      toast.error('Não foi possível detectar seu IP. Verifique sua conexão.');
+    } finally {
+      setFetchingMyIp(false);
+    }
+  };
 
   const filteredSubnets = useMemo((): { subnet: SubnetData; realIdx: number }[] => {
     if (!searchQuery) {
@@ -151,7 +170,7 @@ export function CalculatorView() {
               <label className="block text-sm font-medium text-foreground mb-3">
                 Insira um endereço IPv6 no formato CIDR:
               </label>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <Input
                   value={ctx.ipv6Input}
                   onChange={e => ctx.setIpv6Input(e.target.value)}
@@ -161,6 +180,20 @@ export function CalculatorView() {
                     ctx.errorMessage && "animate-shake border-destructive"
                   )}
                 />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-11 w-11 shrink-0 text-muted-foreground hover:text-primary"
+                  onClick={handleUseMyIp}
+                  disabled={fetchingMyIp}
+                  title="Usar meu IP atual"
+                >
+                  {fetchingMyIp
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Locate className="w-4 h-4" />
+                  }
+                </Button>
                 <Button type="submit" className="gap-2 h-11 px-5 text-sm">
                   <Calculator className="w-4 h-4" />
                   <span className="hidden sm:inline">Calcular</span>
