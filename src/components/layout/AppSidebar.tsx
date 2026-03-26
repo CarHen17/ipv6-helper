@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity } from 'lucide-react';
+import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { useTheme } from '@/hooks/useTheme';
