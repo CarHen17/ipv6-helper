@@ -19,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 const STEPS = [
   { label: 'Inserir IPv6' },
   { label: 'Escolher Prefixo' },
-  { label: 'Gerenciar Sub-redes' },
+  { label: 'Sub-redes' },
 ];
 
 const fadeUp = {
