@@ -157,7 +157,7 @@ export function CalculatorView() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1 hidden sm:block">Divisão e gerenciamento de blocos IPv6</p>
         </div>
-        <div className="w-full sm:w-auto sm:max-w-xs">
+        <div className="w-full sm:w-auto sm:max-w-sm md:max-w-md">
           <StepIndicator currentStep={ctx.currentStep} steps={STEPS} onStepClick={handleStepClick} />
         </div>
       </div>
