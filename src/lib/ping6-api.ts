@@ -174,117 +174,162 @@ export async function lookupDNS(
   return { hostname, records, resolver, queryTime };
 }
 
-// ── HackerTarget — Ping & Traceroute (free, no auth) ─────────────────────────
-// Same provider used for BGP/ASN lookups in ipv6-info.ts.
-// Free tier: 100 requests/day per IP.
+// ── Globalping API — Ping & Traceroute (free, no auth) ───────────────────────
+// https://api.globalping.io — community-powered global network testing
+// Free tier: 500 tests/hour unauthenticated
 
-const HT_BASE = 'https://api.hackertarget.com';
+const GP_BASE = 'https://api.globalping.io/v1';
 
-async function htFetch(path: string, target: string): Promise<string> {
-  const url = `${HT_BASE}${path}?q=${encodeURIComponent(target)}`;
-  const res  = await withTimeout(fetch(url), DEFAULT_TIMEOUT_MS);
-  const text = await res.text();
+async function gpCreateMeasurement(
+  type: 'ping' | 'traceroute',
+  target: string,
+  options?: Record<string, unknown>
+): Promise<string> {
+  const body: Record<string, unknown> = {
+    target,
+    type,
+    locations: [{ country: 'BR' }],
+  };
+  if (options) body.measurementOptions = options;
 
-  // HackerTarget returns plain-text errors starting with "error"
-  if (/^error\b/i.test(text.trim())) {
-    const msg = text.trim().replace(/^error\s*/i, '');
-    throw new Error(
-      msg.toLowerCase().includes('api count')
-        ? 'Limite diário de 100 requisições atingido. Tente novamente amanhã.'
-        : msg || 'Erro no servidor HackerTarget'
-    );
+  const res = await withTimeout(
+    fetch(`${GP_BASE}/measurements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }),
+    DEFAULT_TIMEOUT_MS
+  );
+
+  if (res.status === 429) {
+    throw new Error('Limite de requisições atingido. Aguarde alguns minutos e tente novamente.');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: { message?: string } })?.error?.message ?? `Erro HTTP ${res.status}`);
   }
 
-  return text;
+  const data = await res.json() as { id: string };
+  return data.id;
 }
 
-// ── Ping parser ───────────────────────────────────────────────────────────────
-// HackerTarget uses BusyBox ping — output format:
-//   PING host (ip): N data bytes
-//   N bytes from ip: seq=N ttl=N time=N.N ms
-//   --- host ping statistics ---
-//   N packets transmitted, N packets received, N% packet loss
-//   round-trip min/avg/max = N/N/N ms
-
-function parsePingOutput(raw: string, target: string): PingResult {
-  const results: PingHop[] = [];
-
-  for (const line of raw.split('\n')) {
-    // BusyBox:  "seq=N ttl=N time=N.N ms"
-    // Standard: "icmp_seq=N ... ttl=N ... time=N.N ms"
-    const m = line.match(/(?:icmp_seq|seq)=(\d+).*?ttl=(\d+).*?time=([\d.]+)/i);
-    if (m) results.push({ seq: +m[1], ttl: +m[2], rtt: +m[3] });
-  }
-
-  // "3 packets transmitted, 3 packets received, 0% packet loss"
-  const statsM = raw.match(/(\d+) packets? transmitted,\s*(\d+) packets? received,\s*([\d.]+)%/);
-  // "round-trip min/avg/max = 1.5/2.0/2.5 ms" or "rtt min/avg/max/mdev = ..."
-  const rttM   = raw.match(/(?:round-trip|rtt)\s+min\/avg\/max[^\s]*\s*=\s*([\d.]+)\/([\d.]+)\/([\d.]+)/i);
-  // Extract resolved IP: "PING host (IP):" or "PING IP ("
-  const ipM    = raw.match(/PING\s+\S+\s+\(([^\)]+)\)/i);
-
-  const rtts         = results.map(r => r.rtt);
-  const transmitted  = statsM ? +statsM[1] : results.length;
-  const received     = statsM ? +statsM[2] : results.length;
-  const loss         = statsM ? +statsM[3] : (results.length === 0 ? 100 : 0);
-  const min          = rttM ? +rttM[1] : (rtts.length ? Math.min(...rtts) : 0);
-  const avg          = rttM ? +rttM[2] : (rtts.length ? rtts.reduce((a, b) => a + b, 0) / rtts.length : 0);
-  const max          = rttM ? +rttM[3] : (rtts.length ? Math.max(...rtts) : 0);
-
-  return {
-    target,
-    ip: ipM?.[1] ?? target,
-    raw,
-    results,
-    stats: { transmitted, received, loss, min, avg: +avg.toFixed(2), max },
+interface GPPingResult {
+  result: {
+    status: string;
+    rawOutput: string;
+    resolvedAddress: string;
+    resolvedHostname: string;
+    timings: { ttl: number; rtt: number }[];
+    stats: { min: number; avg: number; max: number; total: number; rcv: number; drop: number; loss: number };
   };
 }
 
-// ── Traceroute parser ─────────────────────────────────────────────────────────
-// HackerTarget output format (BusyBox traceroute):
-//   traceroute to host (IP), 30 hops max, N byte packets
-//    1  10.0.0.1 (10.0.0.1)  1.2 ms  1.3 ms  1.2 ms
-//    2  hostname (IP)  2.1 ms  2.0 ms  2.2 ms
-//    3  * * *
+interface GPTracerouteResult {
+  result: {
+    status: string;
+    rawOutput: string;
+    resolvedAddress: string;
+    resolvedHostname: string;
+    hops: {
+      resolvedHostname: string | null;
+      resolvedAddress: string | null;
+      timings: { rtt: number }[];
+    }[];
+  };
+}
 
-function parseTracerouteOutput(raw: string, target: string): TracerouteResult {
-  // "traceroute to HOST (IP),"
-  const ipM  = raw.match(/traceroute to \S+\s+\(([^\)]+)\)/i);
-  const hops: TracerouteHop[] = [];
+interface GPMeasurement<T> {
+  id: string;
+  type: string;
+  status: string;
+  target: string;
+  results: T[];
+}
 
-  for (const line of raw.split('\n')) {
-    // Timeout: " N  * * *"
-    if (/^\s*(\d+)\s+\*\s+\*\s+\*/.test(line)) {
-      const n = line.match(/^\s*(\d+)/);
-      if (n) hops.push({ hop: +n[1], ip: '*', rtt: 0, timeout: true });
-      continue;
-    }
+async function gpGetResult<T>(id: string): Promise<GPMeasurement<T>> {
+  const maxAttempts = 10;
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, i === 0 ? 1000 : 2000));
+    const res = await fetch(`${GP_BASE}/measurements/${id}`);
+    if (!res.ok) throw new Error(`Erro ao buscar resultado: HTTP ${res.status}`);
+    const data = await res.json() as GPMeasurement<T>;
+    if (data.status === 'finished') return data;
+  }
+  throw new Error('Tempo esgotado aguardando resultado da medição.');
+}
 
-    // With hostname: " N  hostname (IP)  R ms  R ms  R ms"
-    const full = line.match(/^\s*(\d+)\s+(\S+)\s+\(([^\)]+)\)\s+([\d.]+)\s+ms/);
-    if (full) {
-      hops.push({ hop: +full[1], hostname: full[2], ip: full[3], rtt: +full[4] });
-      continue;
-    }
+/** Sends ICMP echo requests to a target via Globalping (free, no auth). */
+export async function pingTarget(target: string): Promise<PingResult> {
+  const id = await gpCreateMeasurement('ping', target, { packets: 4 });
+  const measurement = await gpGetResult<GPPingResult>(id);
 
-    // Without hostname: " N  IP  R ms  R ms  R ms"
-    const simple = line.match(/^\s*(\d+)\s+([^\s*]+)\s+([\d.]+)\s+ms/);
-    if (simple) {
-      hops.push({ hop: +simple[1], ip: simple[2], rtt: +simple[3] });
-    }
+  if (!measurement.results.length || measurement.results[0].result.status !== 'finished') {
+    throw new Error('Medição falhou. O destino pode estar inacessível.');
   }
 
-  return { target, ip: ipM?.[1] ?? target, raw, hops };
+  const r = measurement.results[0].result;
+  const results: PingHop[] = r.timings.map((t, i) => ({
+    seq: i + 1,
+    ttl: t.ttl,
+    rtt: t.rtt,
+  }));
+
+  const stats: PingStats = r.stats
+    ? {
+        transmitted: r.stats.total,
+        received: r.stats.rcv,
+        loss: r.stats.loss,
+        min: r.stats.min,
+        avg: +r.stats.avg.toFixed(2),
+        max: r.stats.max,
+      }
+    : {
+        transmitted: results.length,
+        received: results.length,
+        loss: 0,
+        min: results.length ? Math.min(...results.map(x => x.rtt)) : 0,
+        avg: results.length ? +(results.reduce((a, b) => a + b.rtt, 0) / results.length).toFixed(2) : 0,
+        max: results.length ? Math.max(...results.map(x => x.rtt)) : 0,
+      };
+
+  return {
+    target,
+    ip: r.resolvedAddress || target,
+    raw: r.rawOutput,
+    results,
+    stats,
+  };
 }
 
-/** Sends ICMP echo requests to a target via HackerTarget (free, no auth). */
-export async function pingTarget(target: string): Promise<PingResult> {
-  const raw = await htFetch('/ping/', target);
-  return parsePingOutput(raw, target);
-}
-
-/** Traces the network path to a target via HackerTarget (free, no auth). */
+/** Traces the network path to a target via Globalping (free, no auth). */
 export async function tracerouteTarget(target: string): Promise<TracerouteResult> {
-  const raw = await htFetch('/traceroute/', target);
-  return parseTracerouteOutput(raw, target);
+  const id = await gpCreateMeasurement('traceroute', target);
+  const measurement = await gpGetResult<GPTracerouteResult>(id);
+
+  if (!measurement.results.length || measurement.results[0].result.status !== 'finished') {
+    throw new Error('Medição falhou. O destino pode estar inacessível.');
+  }
+
+  const r = measurement.results[0].result;
+  const hops: TracerouteHop[] = r.hops.map((h, i) => {
+    const isTimeout = !h.resolvedAddress && h.timings.length === 0;
+    const avgRtt = h.timings.length
+      ? h.timings.reduce((a, b) => a + b.rtt, 0) / h.timings.length
+      : 0;
+
+    return {
+      hop: i + 1,
+      ip: h.resolvedAddress || '*',
+      hostname: h.resolvedHostname || undefined,
+      rtt: +avgRtt.toFixed(2),
+      timeout: isTimeout || undefined,
+    };
+  });
+
+  return {
+    target,
+    ip: r.resolvedAddress || target,
+    raw: r.rawOutput,
+    hops,
+  };
 }
