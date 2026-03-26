@@ -293,7 +293,7 @@ export function PlannerView() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="mt-6 space-y-5">
             {/* Stats bar */}
-            <div className="bg-card rounded-xl border border-border grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+            <div className="bg-card rounded-xl border border-border grid grid-cols-2 divide-x divide-border">
               {[
                 { val: results.length.toString(), label: 'Níveis' },
                 { val: (results[results.length - 1].prefix - base.prefix).toString(), label: 'Bits alocados' },
