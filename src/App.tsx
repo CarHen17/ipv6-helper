@@ -33,6 +33,7 @@ const App = () => (
                 <Route path="/history" element={<History />} />
                 <Route path="/dns" element={<DNS />} />
                 <Route path="/network" element={<Network />} />
+                <Route path="/readiness" element={<Readiness />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AppLayout>
