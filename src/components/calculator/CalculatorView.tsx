@@ -149,13 +149,13 @@ export function CalculatorView() {
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       {/* Header with inline step indicator */}
-      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-3 sm:gap-4">
+        <div className="shrink-0">
+          <h1 className="text-lg sm:text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
             <Calculator className="w-5 h-5 text-primary" />
             Calculadora de Sub-redes
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Divisão e gerenciamento de blocos IPv6</p>
+          <p className="text-sm text-muted-foreground mt-1 hidden sm:block">Divisão e gerenciamento de blocos IPv6</p>
         </div>
         <div className="w-full sm:w-auto sm:max-w-xs">
           <StepIndicator currentStep={ctx.currentStep} steps={STEPS} onStepClick={handleStepClick} />
