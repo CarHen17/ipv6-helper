@@ -373,10 +373,10 @@ export function CalculatorView() {
                                 className="rounded"
                               />
                             </td>
-                             <td className="p-3 font-mono text-sm text-primary">{shortenIPv6(subnet.subnet)}</td>
-                             <td className="p-3 font-mono text-sm text-foreground/80">{shortenIPv6(subnet.initial)}</td>
-                             <td className="p-3 font-mono text-sm text-foreground/80 hidden sm:table-cell">{shortenIPv6(subnet.final)}</td>
-                             <td className="p-3 font-mono text-sm text-foreground/60 hidden md:table-cell">{shortenIPv6(subnet.network)}</td>
+                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-primary truncate max-w-[120px] sm:max-w-none">{shortenIPv6(subnet.subnet)}</td>
+                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/80 truncate max-w-[120px] sm:max-w-none">{shortenIPv6(subnet.initial)}</td>
+                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/80 hidden sm:table-cell">{shortenIPv6(subnet.final)}</td>
+                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/60 hidden md:table-cell">{shortenIPv6(subnet.network)}</td>
                           </tr>
                         );
                       })}

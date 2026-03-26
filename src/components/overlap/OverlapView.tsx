@@ -219,7 +219,7 @@ export function OverlapView() {
               transition={{ duration: 0.35 }}
             >
               {/* Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <StatCard value={report.stats.valid} label="Blocos válidos" icon={CheckCircle2} variant="default" />
                 <StatCard value={report.stats.clean} label="Sem conflito" icon={ShieldCheck} variant="success" />
                 <StatCard
