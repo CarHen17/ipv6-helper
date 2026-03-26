@@ -84,29 +84,36 @@ export interface TracerouteResult {
   hops: TracerouteHop[];
 }
 
-// ── ping6.net — /myip & /validate (no auth) ──────────────────────────────────
+// ── IP Detection — api64.ipify.org (supports IPv4 & IPv6, CORS-friendly) ─────
+
+/** Returns the caller's public IP address. */
+export async function fetchMyIP(): Promise<MyIPResult> {
+  // api64.ipify.org returns IPv6 when available, IPv4 otherwise
+  const res = await withTimeout(
+    fetch('https://api64.ipify.org?format=json'),
+    DEFAULT_TIMEOUT_MS
+  );
+  if (!res.ok) throw new Error(`Erro HTTP ${res.status}`);
+  const data = await res.json() as { ip: string };
+  const ip = data.ip;
+  const isIPv6 = ip.includes(':');
+  return { ip, version: isIPv6 ? 6 : 4, isIPv6 };
+}
+
+// ── ping6.net — /validate (no auth) ──────────────────────────────────────────
 
 const PING6_BASE = 'https://ping6.net/api/v1';
 
-async function ping6Fetch<T>(path: string, params?: Record<string, string>): Promise<T> {
-  const url = new URL(`${PING6_BASE}${path}`);
-  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+/** Validates an IPv6 address and returns compressed/expanded forms. */
+export async function validateIPv6(address: string): Promise<Ping6ValidateResult> {
+  const url = new URL(`${PING6_BASE}/validate`);
+  url.searchParams.set('address', address);
   const res = await withTimeout(fetch(url.toString()), DEFAULT_TIMEOUT_MS);
   const data = await res.json();
   if (!res.ok) {
     throw new Error((data as { error?: { message?: string } })?.error?.message ?? `Erro HTTP ${res.status}`);
   }
-  return data as T;
-}
-
-/** Returns the caller's public IP address. */
-export function fetchMyIP(): Promise<MyIPResult> {
-  return ping6Fetch<MyIPResult>('/myip');
-}
-
-/** Validates an IPv6 address and returns compressed/expanded forms. */
-export function validateIPv6(address: string): Promise<Ping6ValidateResult> {
-  return ping6Fetch<Ping6ValidateResult>('/validate', { address });
+  return data as Ping6ValidateResult;
 }
 
 // ── DNS over HTTPS (DoH) — Cloudflare / Google / Quad9 ───────────────────────
