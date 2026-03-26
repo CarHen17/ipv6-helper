@@ -392,8 +392,8 @@ export function NetworkView() {
           Ferramentas de Rede
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Ping e Traceroute IPv6 via{' '}
-          <span className="text-foreground font-medium">HackerTarget</span>
+          Ping e Traceroute via{' '}
+          <a href="https://globalping.io" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">Globalping</a>
           {' '}— gratuito, sem chave de API.
         </p>
       </div>
