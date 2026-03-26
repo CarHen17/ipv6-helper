@@ -12,6 +12,7 @@ import Overlap from "./pages/Overlap";
 import History from "./pages/History";
 import DNS from "./pages/DNS";
 import Network from "./pages/Network";
+import Readiness from "./pages/Readiness";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
                 <Route path="/history" element={<History />} />
                 <Route path="/dns" element={<DNS />} />
                 <Route path="/network" element={<Network />} />
+                <Route path="/readiness" element={<Readiness />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AppLayout>
