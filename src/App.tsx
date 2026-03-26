@@ -10,6 +10,8 @@ import Planner from "./pages/Planner";
 import EUI64 from "./pages/EUI64";
 import Overlap from "./pages/Overlap";
 import History from "./pages/History";
+import DNS from "./pages/DNS";
+import Network from "./pages/Network";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
                 <Route path="/eui64" element={<EUI64 />} />
                 <Route path="/overlap" element={<Overlap />} />
                 <Route path="/history" element={<History />} />
+                <Route path="/dns" element={<DNS />} />
+                <Route path="/network" element={<Network />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AppLayout>

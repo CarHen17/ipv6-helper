@@ -6,7 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import {
   Globe, Shield, MapPin, Server, Clock, Users, ExternalLink,
-  Loader2, AlertTriangle, CheckCircle, XCircle, Info, RefreshCw,
+  Loader2, AlertTriangle, CheckCircle, XCircle, Info, RefreshCw, Minimize2, Maximize2, Copy,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -16,6 +16,8 @@ import {
   classifyIPv6,
   fullIPv6Lookup,
 } from '@/lib/ipv6-info';
+import { validateIPv6, type Ping6ValidateResult } from '@/lib/ping6-api';
+import { toast } from 'sonner';
 
 interface IPv6InfoPanelProps {
   open: boolean;
@@ -26,24 +28,29 @@ interface IPv6InfoPanelProps {
 export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanelProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<IPv6LookupResult | null>(null);
+  const [ping6Result, setPing6Result] = useState<Ping6ValidateResult | null>(null);
 
   useEffect(() => {
     if (!open || !ipv6Address) return;
-    
+
     setLoading(true);
     setResult(null);
+    setPing6Result(null);
 
-    fullIPv6Lookup(ipv6Address)
-      .then(setResult)
-      .catch(() => {
-        setResult({
-          input: ipv6Address,
-          isValid: false,
-          typeInfo: classifyIPv6(ipv6Address),
-          error: 'Falha ao consultar informações de rede',
-        });
-      })
-      .finally(() => setLoading(false));
+    const addrOnly = ipv6Address.split('/')[0];
+
+    Promise.all([
+      fullIPv6Lookup(ipv6Address).catch((): IPv6LookupResult => ({
+        input: ipv6Address,
+        isValid: false,
+        typeInfo: classifyIPv6(ipv6Address),
+        error: 'Falha ao consultar informações de rede',
+      })),
+      validateIPv6(addrOnly).catch(() => null),
+    ]).then(([lookup, p6]) => {
+      setResult(lookup);
+      setPing6Result(p6);
+    }).finally(() => setLoading(false));
   }, [open, ipv6Address]);
 
   const typeInfo = result?.typeInfo || classifyIPv6(ipv6Address);
@@ -71,6 +78,15 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
 
           {/* Type Classification - always shown */}
           <TypeClassificationCard typeInfo={typeInfo} />
+
+          {/* Ping6 Validate */}
+          <AnimatePresence>
+            {ping6Result && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <Ping6ValidateCard result={ping6Result} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Loading */}
           {loading && (
@@ -345,6 +361,80 @@ function RDAPInfoCard({ rdapInfo }: { rdapInfo: NonNullable<IPv6LookupResult['rd
             ))}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function Ping6ValidateCard({ result }: { result: Ping6ValidateResult }) {
+  const copyText = (text: string) =>
+    navigator.clipboard.writeText(text).then(
+      () => toast.success('Copiado!'),
+      () => toast.error('Falha ao copiar')
+    );
+
+  return (
+    <div className="bg-card rounded-xl border border-border overflow-hidden">
+      <div className="px-3.5 py-2.5 border-b border-border/60 flex items-center justify-between">
+        <h3 className="text-sm font-medium flex items-center gap-1.5">
+          <CheckCircle className="w-4 h-4 text-primary" /> Formas do Endereço
+        </h3>
+        <Badge
+          variant="outline"
+          className={cn(
+            'text-[10px] px-2 py-0',
+            result.valid
+              ? 'border-emerald-500/30 text-emerald-400'
+              : 'border-destructive/30 text-destructive'
+          )}
+        >
+          {result.valid ? 'válido' : 'inválido'}
+        </Badge>
+      </div>
+      <div className="p-3.5 space-y-3">
+        {result.type && (
+          <div className="flex items-center gap-1.5">
+            <Globe className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <div>
+              <span className="text-xs text-muted-foreground block">Tipo (ping6)</span>
+              <span className="text-sm text-foreground">{result.type}</span>
+            </div>
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Minimize2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <span className="text-xs text-muted-foreground block">Comprimido</span>
+                <code className="text-sm font-mono text-primary break-all">{result.compressed}</code>
+              </div>
+            </div>
+            <button
+              onClick={() => copyText(result.compressed)}
+              className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              title="Copiar"
+            >
+              <Copy className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Maximize2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <span className="text-xs text-muted-foreground block">Expandido</span>
+                <code className="text-[11px] font-mono text-muted-foreground break-all">{result.expanded}</code>
+              </div>
+            </div>
+            <button
+              onClick={() => copyText(result.expanded)}
+              className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              title="Copiar"
+            >
+              <Copy className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
