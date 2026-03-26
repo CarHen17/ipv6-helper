@@ -138,7 +138,7 @@ export function CalculatorView() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Divisão e gerenciamento de blocos IPv6</p>
         </div>
-        <div className="w-full sm:w-auto sm:min-w-[320px]">
+        <div className="w-full sm:w-auto sm:max-w-xs">
           <StepIndicator currentStep={ctx.currentStep} steps={STEPS} onStepClick={handleStepClick} />
         </div>
       </div>
@@ -257,14 +257,14 @@ export function CalculatorView() {
                       Novo cálculo
                     </Button>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     <div className="relative">
                       <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                       <Input
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
                         placeholder="Filtrar..."
-                        className="pl-8 h-8 text-xs w-40 bg-secondary/50 border-border/40"
+                        className="pl-8 h-8 text-xs w-28 sm:w-40 bg-secondary/50 border-border/40"
                       />
                     </div>
                     {ctx.selectedIndices.size === 1 && (
@@ -312,8 +312,8 @@ export function CalculatorView() {
                         </th>
                          <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Sub-rede</th>
                          <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Inicial</th>
-                         <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Final</th>
-                         <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs">Rede</th>
+                         <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs hidden sm:table-cell">Final</th>
+                         <th className="p-3 text-left font-medium text-muted-foreground uppercase tracking-wider text-xs hidden md:table-cell">Rede</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/30">
@@ -342,8 +342,8 @@ export function CalculatorView() {
                             </td>
                              <td className="p-3 font-mono text-sm text-primary">{shortenIPv6(subnet.subnet)}</td>
                              <td className="p-3 font-mono text-sm text-foreground/80">{shortenIPv6(subnet.initial)}</td>
-                             <td className="p-3 font-mono text-sm text-foreground/80">{shortenIPv6(subnet.final)}</td>
-                             <td className="p-3 font-mono text-sm text-foreground/60">{shortenIPv6(subnet.network)}</td>
+                             <td className="p-3 font-mono text-sm text-foreground/80 hidden sm:table-cell">{shortenIPv6(subnet.final)}</td>
+                             <td className="p-3 font-mono text-sm text-foreground/60 hidden md:table-cell">{shortenIPv6(subnet.network)}</td>
                           </tr>
                         );
                       })}
