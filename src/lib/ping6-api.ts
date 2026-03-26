@@ -2,7 +2,7 @@
 // - DNS    : DNS over HTTPS (Cloudflare / Google / Quad9) — no auth required
 // - /myip  : ping6.net — no auth required
 // - /validate : ping6.net — no auth required
-// - Ping / Traceroute : HackerTarget free API — no auth required (100 req/day)
+// - Ping / Traceroute : Globalping API — free, no auth (500 tests/hour)
 
 const DEFAULT_TIMEOUT_MS = 15_000;
 
