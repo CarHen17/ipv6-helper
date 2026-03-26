@@ -74,7 +74,14 @@ export function ReadinessView() {
   };
 
   const handleCheck = async () => {
-    const cleaned = domains.map(d => d.trim().toLowerCase()).filter(Boolean);
+    const cleaned = domains
+      .map(d => {
+        let val = d.trim().toLowerCase();
+        // Strip protocol (http:// https://) and trailing slashes/paths
+        val = val.replace(/^https?:\/\//, '').replace(/[\/\?#].*$/, '');
+        return val;
+      })
+      .filter(Boolean);
     if (cleaned.length === 0) { toast.error('Insira ao menos um domínio.'); return; }
 
     const unique = [...new Set(cleaned)];
