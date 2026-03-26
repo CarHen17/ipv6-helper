@@ -143,7 +143,7 @@ export function DNSView() {
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Tipo de registro
               </label>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="grid grid-cols-4 gap-1.5">
                 {DNS_TYPES.map(type => (
                   <button
                     key={type}
