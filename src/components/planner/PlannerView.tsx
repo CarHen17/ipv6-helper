@@ -293,7 +293,7 @@ export function PlannerView() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="mt-6 space-y-5">
             {/* Stats bar */}
-            <div className="bg-card rounded-xl border border-border grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+            <div className="bg-card rounded-xl border border-border grid grid-cols-2 divide-x divide-border">
               {[
                 { val: results.length.toString(), label: 'Níveis' },
                 { val: (results[results.length - 1].prefix - base.prefix).toString(), label: 'Bits alocados' },
@@ -336,19 +336,19 @@ export function PlannerView() {
                       </span>
                     </div>
                     {/* Node */}
-                     <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50">
+                     <div className="flex items-start sm:items-center gap-3 p-3 rounded-lg bg-secondary/50 flex-wrap sm:flex-nowrap">
                        <div className="w-7 h-7 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold shrink-0">
                          {i + 1}
                        </div>
                        <div className="flex-1 min-w-0">
-                         <div className="text-sm font-medium flex items-center gap-2">
+                         <div className="text-sm font-medium flex items-center gap-2 flex-wrap">
                            {level.label} <span className="text-xs bg-primary/15 text-primary px-1.5 py-0.5 rounded font-mono">/{level.prefix}</span>
                          </div>
                          <div className="text-xs text-muted-foreground">
                            {formatBigInt(level.totalBlocks)} blocos · {formatBigInt(level.hostsPerBlock)} end./bloco
                          </div>
                        </div>
-                       <Button size="sm" variant="outline" className="shrink-0 gap-1.5 text-xs h-8 px-3" onClick={() => openBlocksModal(i)}>
+                       <Button size="sm" variant="outline" className="shrink-0 gap-1.5 text-xs h-8 px-3 w-full sm:w-auto mt-1 sm:mt-0" onClick={() => openBlocksModal(i)}>
                          <TableIcon className="w-3.5 h-3.5" /> Ver blocos
                        </Button>
                      </div>

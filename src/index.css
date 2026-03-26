@@ -82,7 +82,13 @@
 
   code, .font-mono {
     font-family: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    word-break: break-all;
   }
+}
+
+/* Prevent overflow on mono addresses in tables */
+table .font-mono, table code {
+  overflow-wrap: break-word;
 }
 
 ::-webkit-scrollbar { width: 5px; height: 5px; }
