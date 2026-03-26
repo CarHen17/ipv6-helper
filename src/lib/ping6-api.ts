@@ -21,6 +21,9 @@ export type DNSRecordType = 'AAAA' | 'A' | 'MX' | 'TXT' | 'NS' | 'CNAME' | 'SOA'
 export type DNSResolver   = 'cloudflare' | 'google' | 'quad9';
 
 export interface MyIPResult {
+  ipv4?: string;
+  ipv6?: string;
+  /** Primary IP returned (prefers IPv6) */
   ip: string;
   version: number;
   isIPv6: boolean;
@@ -86,18 +89,39 @@ export interface TracerouteResult {
 
 // ── IP Detection — api64.ipify.org (supports IPv4 & IPv6, CORS-friendly) ─────
 
-/** Returns the caller's public IP address. */
+/** Returns the caller's public IP addresses (tries both IPv4 and IPv6). */
 export async function fetchMyIP(): Promise<MyIPResult> {
-  // api64.ipify.org returns IPv6 when available, IPv4 otherwise
-  const res = await withTimeout(
-    fetch('https://api64.ipify.org?format=json'),
-    DEFAULT_TIMEOUT_MS
-  );
-  if (!res.ok) throw new Error(`Erro HTTP ${res.status}`);
-  const data = await res.json() as { ip: string };
-  const ip = data.ip;
-  const isIPv6 = ip.includes(':');
-  return { ip, version: isIPv6 ? 6 : 4, isIPv6 };
+  const fetchIP = async (url: string): Promise<string | null> => {
+    try {
+      const res = await withTimeout(fetch(url), 8_000);
+      if (!res.ok) return null;
+      const data = await res.json() as { ip: string };
+      return data.ip || null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Fetch both in parallel — api6 forces IPv6-only, api4 forces IPv4-only
+  const [ipv6, ipv4] = await Promise.all([
+    fetchIP('https://api6.ipify.org?format=json'),
+    fetchIP('https://api4.ipify.org?format=json'),
+  ]);
+
+  if (!ipv6 && !ipv4) {
+    throw new Error('Não foi possível detectar seu IP público.');
+  }
+
+  const primaryIp = ipv6 || ipv4!;
+  const isIPv6 = !!ipv6;
+
+  return {
+    ipv4: ipv4 || undefined,
+    ipv6: ipv6 || undefined,
+    ip: primaryIp,
+    version: isIPv6 ? 6 : 4,
+    isIPv6,
+  };
 }
 
 // ── ping6.net — /validate (no auth) ──────────────────────────────────────────

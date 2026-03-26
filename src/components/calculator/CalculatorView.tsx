@@ -53,12 +53,14 @@ export function CalculatorView() {
     setFetchingMyIp(true);
     try {
       const result = await fetchMyIP();
-      if (!result.isIPv6) {
-        toast.error('Você está conectado via IPv4. Insira um endereço manualmente.');
-        return;
+      if (result.ipv6) {
+        ctx.setIpv6Input(result.ipv6);
+        toast.success(`IPv6 detectado: ${result.ipv6}`);
+      } else if (result.ipv4) {
+        toast.info(`Você está conectado via IPv4 (${result.ipv4}). Insira um endereço IPv6 manualmente.`);
+      } else {
+        toast.error('Não foi possível detectar seu IP.');
       }
-      ctx.setIpv6Input(result.ip);
-      toast.success(`IP detectado: ${result.ip}`);
     } catch {
       toast.error('Não foi possível detectar seu IP. Verifique sua conexão.');
     } finally {
