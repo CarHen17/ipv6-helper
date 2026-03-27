@@ -162,7 +162,7 @@ const DNS_STATUS: Record<number, string> = {
 const DOH_ENDPOINTS: Record<DNSResolver, string> = {
   cloudflare: 'https://cloudflare-dns.com/dns-query',
   google:     'https://dns.google/resolve',
-  quad9:      'https://dns.quad9.net/dns-query',
+  quad9:      'https://dns.quad9.net:5053/dns-query',
 };
 
 interface DoHResponse {
