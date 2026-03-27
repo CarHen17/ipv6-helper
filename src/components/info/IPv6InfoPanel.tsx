@@ -174,7 +174,7 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
                   <ExternalLink className="w-3 h-3" /> bgp.tools
                 </a>
                 <a
-                  href={`https://hackertarget.com/as-ip-lookup/?q=${encodeURIComponent(ipv6Address.split('/')[0])}`}
+                  href={`https://hackertarget.com/as-ip-lookup/?q=${encodeURIComponent(ipv6Address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
@@ -182,7 +182,7 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
                   <ExternalLink className="w-3 h-3" /> HackerTarget
                 </a>
                 <a
-                  href={`https://who.is/whois-ip/ip-address/${encodeURIComponent(ipv6Address.split('/')[0])}`}
+                  href={`https://who.is/whois/${encodeURIComponent(ipv6Address)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
