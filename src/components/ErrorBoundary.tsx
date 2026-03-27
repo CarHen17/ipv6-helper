@@ -9,20 +9,32 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  isChunkError: boolean;
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, isChunkError: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    const isChunkError =
+      error.name === 'ChunkLoadError' ||
+      /loading chunk/i.test(error.message) ||
+      /failed to fetch dynamically imported module/i.test(error.message);
+    return { hasError: true, error, isChunkError };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('[ErrorBoundary]', error, info.componentStack);
+  }
+
+  componentDidUpdate(_: Props, prev: State) {
+    // Auto-reload once when a chunk fails to load (stale deployment hash)
+    if (this.state.isChunkError && !prev.isChunkError) {
+      window.location.reload();
+    }
   }
 
   handleReset = () => {
