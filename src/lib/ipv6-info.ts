@@ -153,50 +153,61 @@ function expandToFullForm(addr: string): string {
   return groups.map(g => g.padStart(4, '0')).join(':');
 }
 
-// Lookup BGP info via hackertarget API
+// Lookup BGP info via hackertarget API (CSV endpoint — more reliable for IPv6 prefixes)
 export async function lookupBGP(ip: string): Promise<BGPInfo | null> {
   try {
     const addr = ip.split('/')[0];
-    const res = await fetch(`https://api.hackertarget.com/aslookup/?q=${encodeURIComponent(addr)}&output=json`);
-    
+
+    // Use the plain-text CSV endpoint (no &output=json).
+    // The JSON endpoint sometimes returns the ASN but omits the prefix for IPv6.
+    // CSV format: "IP","AS263269","2804:1620::/32","AS Name"
+    const res = await fetch(`https://api.hackertarget.com/aslookup/?q=${encodeURIComponent(addr)}`);
     if (!res.ok) return null;
-    
+
     const text = await res.text();
-    
-    // Check for API error/limit messages
-    if (text.startsWith('error') || text.includes('API count exceeded')) {
-      return null;
+    if (text.startsWith('error') || text.includes('API count exceeded')) return null;
+
+    // Parse CSV — fields may or may not be quoted
+    const parts = text.split(',').map((s: string) => s.replace(/"/g, '').trim());
+    const asn = (parts[1] || '').replace(/^AS/i, '');
+    const prefix = parts[2] || '';
+    const asName = parts.slice(3).join(', ') || '';
+
+    if (!asn) return null;
+
+    if (prefix) {
+      return { asn, prefix, asName };
     }
-    
-    try {
-      const data = JSON.parse(text);
-      const entry = Array.isArray(data) ? data[0] : data;
-      if (entry && (entry.asn || entry.AS)) {
-        return {
-          // hackertarget may return asn as "264023" or "AS264023"
-          asn: String(entry.asn || entry.AS || '').replace(/^AS/i, ''),
-          // field name varies by API version
-          asName: entry.as_description || entry.as_name || entry.description || entry.org || '',
-          // may come back as "prefix", "bgp_prefix", or "network"
-          prefix: entry.prefix || entry.bgp_prefix || entry.network || '',
-          country: entry.country_code || entry.country || '',
-        };
-      }
-    } catch {
-      // Parse as plain-text CSV: "IP","ASN","PREFIX","AS_NAME"
-      // Tolerate 2-4 fields so at least ASN is returned even when prefix is missing
-      const parts = text.split(',').map((s: string) => s.replace(/"/g, '').trim());
-      if (parts.length >= 2 && parts[1]) {
-        return {
-          asn: parts[1].replace(/^AS/i, ''),
-          prefix: parts[2] || '',
-          // join remaining parts in case the AS name contained a comma
-          asName: parts.slice(3).join(', ') || '',
-        };
-      }
-    }
-    
+
+    // Prefix missing from HackerTarget — try RIPEstat as fallback.
+    // routing-status returns the BGP-announced prefix(es) that contain this IP.
+    const ripePrefix = await lookupRIPEstatPrefix(addr).catch(() => null);
+    return { asn, prefix: ripePrefix ?? '', asName };
+  } catch {
     return null;
+  }
+}
+
+// Fetch the largest BGP-announced prefix for an IP via RIPEstat (free, no auth)
+async function lookupRIPEstatPrefix(addr: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://stat.ripe.net/data/prefix-overview/data.json?resource=${encodeURIComponent(addr)}`
+    );
+    if (!res.ok) return null;
+    const data = await res.json() as {
+      data?: { prefixes?: { prefix: string }[] };
+    };
+    const prefixes = data?.data?.prefixes;
+    if (!prefixes?.length) return null;
+
+    // Pick the shortest prefix length = largest announced block (user asked for "bloco maior anunciado")
+    const sorted = [...prefixes].sort((a, b) => {
+      const lenA = parseInt(a.prefix.split('/')[1] ?? '128', 10);
+      const lenB = parseInt(b.prefix.split('/')[1] ?? '128', 10);
+      return lenA - lenB;
+    });
+    return sorted[0].prefix;
   } catch {
     return null;
   }
