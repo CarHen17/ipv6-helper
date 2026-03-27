@@ -120,10 +120,10 @@ function PingTab() {
         </div>
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={() => { setTarget(''); setResult(null); setError(''); }}
-            disabled={!target && !result} className="gap-2 h-10 text-sm">
+            disabled={!target && !result} className="gap-2 h-11 text-sm">
             <RotateCcw className="w-4 h-4" /> Limpar
           </Button>
-          <Button onClick={handlePing} disabled={loading || !target.trim()} className="gap-2 h-10 px-5 text-sm">
+          <Button onClick={handlePing} disabled={loading || !target.trim()} className="gap-2 h-11 px-5 text-sm">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wifi className="w-4 h-4" />}
             Pingar
           </Button>
@@ -277,10 +277,10 @@ function TracerouteTab() {
         </div>
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={() => { setTarget(''); setResult(null); setError(''); }}
-            disabled={!target && !result} className="gap-2 h-10 text-sm">
+            disabled={!target && !result} className="gap-2 h-11 text-sm">
             <RotateCcw className="w-4 h-4" /> Limpar
           </Button>
-          <Button onClick={handleTrace} disabled={loading || !target.trim()} className="gap-2 h-10 px-5 text-sm">
+          <Button onClick={handleTrace} disabled={loading || !target.trim()} className="gap-2 h-11 px-5 text-sm">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
             Rastrear
           </Button>

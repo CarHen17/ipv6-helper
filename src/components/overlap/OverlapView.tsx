@@ -198,10 +198,10 @@ export function OverlapView() {
               {blockCount > 0 ? `${blockCount} bloco(s) para analisar` : 'Suporta comentários com # e linhas em branco'}
             </p>
             <div className="flex gap-3 w-full sm:w-auto">
-              <Button variant="outline" onClick={handleReset} className="gap-2 h-10 text-sm flex-1 sm:flex-none" disabled={!input && !report}>
+              <Button variant="outline" onClick={handleReset} className="gap-2 h-11 text-sm flex-1 sm:flex-none" disabled={!input && !report}>
                 <RotateCcw className="w-4 h-4" /> Limpar
               </Button>
-              <Button onClick={handleAnalyze} className="gap-2 h-10 px-5 text-sm flex-1 sm:flex-none" disabled={!input.trim()}>
+              <Button onClick={handleAnalyze} className="gap-2 h-11 px-5 text-sm flex-1 sm:flex-none" disabled={!input.trim()}>
                 <Search className="w-4 h-4" /> Analisar
               </Button>
             </div>
