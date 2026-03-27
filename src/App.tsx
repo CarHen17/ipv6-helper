@@ -27,7 +27,7 @@ const App = () => (
         <HashRouter>
           <CalculatorProvider>
             <AppLayout>
-              <Suspense>
+              <Suspense fallback={null}>
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/planner" element={<Planner />} />
