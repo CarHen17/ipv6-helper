@@ -540,16 +540,23 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
 
     // Auto-select the subnet prefix if valid
     if (entry.prefix > prefixoNum) {
-      // Use setTimeout to let state settle, then select prefix
-      setTimeout(async () => {
+      // Cancel any pending generation before scheduling the restore
+      if (generateTimerRef.current !== null) {
+        clearTimeout(generateTimerRef.current);
+        generateTimerRef.current = null;
+      }
+      generationSignalRef.current.cancelled = true;
+      generationSignalRef.current = { cancelled: false };
+      const signal = generationSignalRef.current;
+
+      // Store in generateTimerRef so resetCalculadora can cancel it
+      generateTimerRef.current = setTimeout(async () => {
+        generateTimerRef.current = null;
         const ipv6BigInt = BigInt("0x" + enderecoCompleto.replace(/:/g, ''));
         const numSubRedes = 1n << BigInt(entry.prefix - prefixoNum);
         const initialMask = ((1n << BigInt(prefixoNum)) - 1n) << (128n - BigInt(prefixoNum));
 
-        generationSignalRef.current.cancelled = true;
-        generationSignalRef.current = { cancelled: false };
-        const signal = generationSignalRef.current;
-
+        if (signal.cancelled) return;
         setState(s2 => ({ ...s2, isLoading: true, loadingProgress: 0, selectedSubnetPrefix: entry.prefix }));
 
         try {
