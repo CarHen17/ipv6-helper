@@ -4,6 +4,7 @@ import { StepIndicator } from './StepIndicator';
 import { shortenIPv6, COMMON_PREFIXES, isValidIPv6Address, IPV6_CONFIG, type SubnetData, type ComparisonResult } from '@/lib/ipv6-utils';
 import { exportToCSV, exportToTXT, exportToJSON, exportToExcel, exportSubnetsToCSV } from '@/lib/export-utils';
 import { fetchMyIP } from '@/lib/ping6-api';
+import { lookupBGP } from '@/lib/ipv6-info';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -53,13 +54,29 @@ export function CalculatorView() {
     setFetchingMyIp(true);
     try {
       const result = await fetchMyIP();
-      if (result.ipv6) {
-        ctx.setIpv6Input(result.ipv6);
-        toast.success(`IPv6 detectado: ${result.ipv6}`);
-      } else if (result.ipv4) {
-        toast.info(`Você está conectado via IPv4 (${result.ipv4}). Insira um endereço IPv6 manualmente.`);
+      if (!result.ipv6) {
+        if (result.ipv4) {
+          toast.info(`Conectado via IPv4 (${result.ipv4}). Insira um endereço IPv6 manualmente.`);
+        } else {
+          toast.error('Não foi possível detectar seu IP.');
+        }
+        return;
+      }
+
+      // Look up the BGP-announced parent block for this host address
+      const bgp = await lookupBGP(result.ipv6).catch(() => null);
+      if (bgp?.prefix) {
+        ctx.setIpv6Input(bgp.prefix);
+        const asLabel = bgp.asn ? ` · AS${bgp.asn}${bgp.asName ? ` – ${bgp.asName}` : ''}` : '';
+        toast.success(`Bloco anunciado: ${bgp.prefix}`, {
+          description: `IP detectado: ${result.ipv6}${asLabel}`,
+        });
       } else {
-        toast.error('Não foi possível detectar seu IP.');
+        // BGP lookup failed or returned no prefix — fall back to /128
+        ctx.setIpv6Input(`${result.ipv6}/128`);
+        toast.info(`IPv6 detectado: ${result.ipv6}/128`, {
+          description: 'Bloco BGP não encontrado. Usando /128 — troque o prefixo manualmente para calcular sub-redes.',
+        });
       }
     } catch {
       toast.error('Não foi possível detectar seu IP. Verifique sua conexão.');
