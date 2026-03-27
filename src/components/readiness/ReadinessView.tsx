@@ -178,7 +178,7 @@ export function ReadinessView() {
                     onChange={e => updateDomain(i, e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder={`Ex.: ${PRESETS[i % PRESETS.length]}`}
-                    className="font-mono text-sm bg-secondary/60 border-border/60 flex-1 h-10"
+                    className="font-mono text-sm bg-secondary/60 border-border/60 flex-1 h-11"
                     spellCheck={false}
                     disabled={loading}
                   />
@@ -187,7 +187,7 @@ export function ReadinessView() {
                       variant="ghost"
                       size="icon"
                       onClick={() => removeDomain(i)}
-                      className="h-10 w-10 text-muted-foreground hover:text-destructive shrink-0"
+                      className="h-11 w-11 text-muted-foreground hover:text-destructive shrink-0"
                       disabled={loading}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -212,14 +212,14 @@ export function ReadinessView() {
             <Button
               variant="outline"
               onClick={handleReset}
-              className="gap-2 h-10 text-sm"
+              className="gap-2 h-11 text-sm"
               disabled={loading}
             >
               <RotateCcw className="w-4 h-4" /> Limpar
             </Button>
             <Button
               onClick={handleCheck}
-              className="gap-2 h-10 px-5 text-sm"
+              className="gap-2 h-11 px-5 text-sm"
               disabled={loading || domains.every(d => !d.trim())}
             >
               {loading

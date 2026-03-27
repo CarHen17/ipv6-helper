@@ -190,7 +190,7 @@ export function PlannerView() {
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       <div className="mb-8">
-        <h1 className="text-xl font-semibold text-foreground flex items-center gap-2.5">
+        <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
           <Network className="w-5 h-5 text-primary" /> Planejador Hierárquico
         </h1>
         <p className="text-sm text-muted-foreground mt-1">Planeje hierarquias multi-nível de endereçamento IPv6</p>

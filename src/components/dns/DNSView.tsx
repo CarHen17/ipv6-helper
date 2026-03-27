@@ -190,14 +190,14 @@ export function DNSView() {
             <Button
               variant="outline"
               onClick={handleReset}
-              className="gap-2 h-10 text-sm"
+              className="gap-2 h-11 text-sm"
               disabled={!hostname && !result}
             >
               <RotateCcw className="w-4 h-4" /> Limpar
             </Button>
             <Button
               onClick={handleLookup}
-              className="gap-2 h-10 px-5 text-sm"
+              className="gap-2 h-11 px-5 text-sm"
               disabled={loading || !hostname.trim()}
             >
               {loading

@@ -179,7 +179,7 @@ export async function lookupDNS(
   const start = Date.now();
   const url   = new URL(DOH_ENDPOINTS[resolver]);
   url.searchParams.set('name', hostname);
-  url.searchParams.set('type', String(DNS_TYPE_CODES[type]));
+  url.searchParams.set('type', type);
 
   const res = await withTimeout(
     fetch(url.toString(), { headers: { Accept: 'application/dns-json' } }),
