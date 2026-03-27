@@ -17,6 +17,7 @@ import {
   fullIPv6Lookup,
 } from '@/lib/ipv6-info';
 import { validateIPv6, type Ping6ValidateResult } from '@/lib/ping6-api';
+import { lookupGeo, countryFlag, type GeoInfo } from '@/lib/geo-utils';
 import { toast } from 'sonner';
 
 interface IPv6InfoPanelProps {
@@ -29,6 +30,7 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<IPv6LookupResult | null>(null);
   const [ping6Result, setPing6Result] = useState<Ping6ValidateResult | null>(null);
+  const [geoInfo, setGeoInfo] = useState<GeoInfo | null>(null);
 
   useEffect(() => {
     if (!open || !ipv6Address) return;
@@ -36,6 +38,7 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
     setLoading(true);
     setResult(null);
     setPing6Result(null);
+    setGeoInfo(null);
 
     const addrOnly = ipv6Address.split('/')[0];
 
@@ -47,9 +50,11 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
         error: 'Falha ao consultar informações de rede',
       })),
       validateIPv6(addrOnly).catch(() => null),
-    ]).then(([lookup, p6]) => {
+      lookupGeo(addrOnly).catch(() => null),
+    ]).then(([lookup, p6, geo]) => {
       setResult(lookup);
       setPing6Result(p6);
+      setGeoInfo(geo);
     }).finally(() => setLoading(false));
   }, [open, ipv6Address]);
 
@@ -99,6 +104,15 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
               <span className="text-sm">Consultando informações de rede...</span>
             </motion.div>
           )}
+
+          {/* Geolocation */}
+          <AnimatePresence>
+            {geoInfo && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <GeoCard geo={geoInfo} />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* BGP Info */}
           <AnimatePresence>
@@ -435,6 +449,41 @@ function Ping6ValidateCard({ result }: { result: Ping6ValidateResult }) {
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function GeoCard({ geo }: { geo: GeoInfo }) {
+  const flag = countryFlag(geo.country ?? '');
+  const location = [geo.city, geo.region, geo.countryName].filter(Boolean).join(', ');
+
+  return (
+    <div className="bg-card rounded-xl border border-border overflow-hidden">
+      <div className="px-3.5 py-2.5 border-b border-border/60">
+        <h3 className="text-sm font-medium flex items-center gap-1.5">
+          <MapPin className="w-4 h-4 text-primary" /> Geolocalização
+        </h3>
+      </div>
+      <div className="p-3.5 space-y-2.5">
+        {location && (
+          <div className="flex items-start gap-1.5">
+            <span className="text-base leading-none mt-0.5">{flag}</span>
+            <div>
+              <span className="text-xs text-muted-foreground block">Localização</span>
+              <span className="text-sm text-foreground">{location}</span>
+            </div>
+          </div>
+        )}
+        {geo.lat !== undefined && geo.lon !== undefined && (
+          <InfoRow icon={MapPin} label="Coordenadas" value={`${geo.lat.toFixed(4)}, ${geo.lon.toFixed(4)}`} mono />
+        )}
+        {geo.timezone && (
+          <InfoRow icon={Clock} label="Fuso horário" value={geo.timezone} />
+        )}
+        {geo.org && (
+          <InfoRow icon={Server} label="Provedor" value={geo.org} />
+        )}
       </div>
     </div>
   );

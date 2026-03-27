@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { lookupDNS, type DNSRecord } from '@/lib/ping6-api';
+import { lookupGeo, countryFlag, type GeoInfo } from '@/lib/geo-utils';
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -26,6 +27,7 @@ interface DomainResult {
   aRecords: DNSRecord[];
   queryTime?: number;
   error?: string;
+  geo?: GeoInfo | null; // geolocation of first AAAA record
 }
 
 const PRESETS = [
@@ -100,6 +102,9 @@ export function ReadinessView() {
             lookupDNS(domain, 'AAAA', 'cloudflare'),
             lookupDNS(domain, 'A', 'cloudflare'),
           ]);
+          // Geo lookup for the first AAAA record (best-effort, never blocks)
+          const firstAAAA = aaaa.records[0]?.value;
+          const geo = firstAAAA ? await lookupGeo(firstAAAA).catch(() => null) : null;
           return {
             domain,
             status: 'done',
@@ -108,6 +113,7 @@ export function ReadinessView() {
             aaaaRecords: aaaa.records,
             aRecords: a.records,
             queryTime: Date.now() - start,
+            geo,
           };
         } catch (err) {
           return {
@@ -299,7 +305,15 @@ export function ReadinessView() {
                         {r.status === 'error' && (
                           <AlertTriangle className="w-4 h-4 text-destructive shrink-0" />
                         )}
-                        <code className="text-sm font-mono text-foreground truncate">{r.domain}</code>
+                        <div className="min-w-0 flex-1">
+                          <code className="text-sm font-mono text-foreground truncate block">{r.domain}</code>
+                          {r.geo && (
+                            <span className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                              <span>{countryFlag(r.geo.country ?? '')}</span>
+                              <span>{[r.geo.city, r.geo.countryName].filter(Boolean).join(', ')}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0">

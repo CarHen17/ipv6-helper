@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch } from 'lucide-react';
+import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch, ArrowRightLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { useTheme } from '@/hooks/useTheme';
@@ -24,6 +24,7 @@ const navItems = [
   { path: '/dns',       label: 'DNS Lookup',      icon: Search },
   { path: '/network',   label: 'Rede (Ping)',     icon: Activity },
   { path: '/readiness', label: 'Verificador IPv6', icon: ScanSearch },
+  { path: '/ipv4to6',   label: 'IPv4 → IPv6',     icon: ArrowRightLeft },
   { path: '/overlap',   label: 'Sobreposição',    icon: ShieldCheck },
   { path: '/planner',   label: 'Planejador',      icon: Network },
   { path: '/eui64',     label: 'EUI-64 / SLAAC',  icon: Cpu },
