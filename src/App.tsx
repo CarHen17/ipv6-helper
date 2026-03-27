@@ -16,6 +16,7 @@ const History   = lazy(() => import("./pages/History"));
 const DNS       = lazy(() => import("./pages/DNS"));
 const Network   = lazy(() => import("./pages/Network"));
 const Readiness = lazy(() => import("./pages/Readiness"));
+const IPv4to6   = lazy(() => import("./pages/IPv4to6"));
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
                   <Route path="/dns" element={<DNS />} />
                   <Route path="/network" element={<Network />} />
                   <Route path="/readiness" element={<Readiness />} />
+                  <Route path="/ipv4to6" element={<IPv4to6 />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
