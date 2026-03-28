@@ -118,7 +118,8 @@ export function EUI64View() {
           Calculadora EUI-64 / SLAAC
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Converta um MAC address em identificador EUI-64 e calcule o endereço SLAAC completo.
+          Converta o endereço MAC de um dispositivo em um identificador EUI-64 e obtenha o endereço IPv6 completo
+          gerado automaticamente pelo dispositivo (SLAAC — sem precisar de servidor DHCP).
         </p>
       </div>
 
@@ -131,7 +132,7 @@ export function EUI64View() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="block text-sm font-medium text-foreground flex items-center gap-1.5">
-                Endereço MAC
+                Endereço MAC do dispositivo
                 {macValid === true && <Check className="w-3.5 h-3.5 text-primary" />}
               </label>
               <div className="relative">
@@ -157,39 +158,42 @@ export function EUI64View() {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-foreground">Prefixo /64</label>
+              <label className="block text-sm font-medium text-foreground">
+                Prefixo da rede <span className="font-normal text-muted-foreground">(/64)</span>
+              </label>
               <Input
                 value={prefixInput}
                 onChange={e => setPrefixInput(e.target.value)}
-                placeholder="2001:db8::"
+                placeholder="Ex.: 2001:db8::  (seu prefixo /64)"
                 className="font-mono text-sm bg-secondary/60 border-border/60 h-11"
                 onKeyDown={e => e.key === 'Enter' && handleCalculate()}
               />
             </div>
           </div>
 
-          {/* Quick fills — collapsible */}
-          <details className="group">
-            <summary className="text-xs text-muted-foreground font-medium cursor-pointer select-none hover:text-foreground transition-colors inline-flex items-center gap-1">
+          {/* Quick fills */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
               <Zap className="w-3 h-3 text-primary/60" />
-              Preencher com exemplo
-            </summary>
-            <div className="flex flex-wrap gap-2 mt-2">
+              Exemplos rápidos
+            </p>
+            <div className="flex flex-wrap gap-2">
               {[
-                { mac: '00:1A:2B:3C:4D:5E', prefix: '2001:db8::' },
-                { mac: 'AA:BB:CC:DD:EE:FF', prefix: '2001:db8::' },
-                { mac: '02:42:AC:11:00:02', prefix: 'fd00::' },
+                { mac: '00:1A:2B:3C:4D:5E', prefix: '2001:db8::', label: 'Dispositivo genérico' },
+                { mac: 'AA:BB:CC:DD:EE:FF', prefix: '2001:db8::', label: 'MAC multicast' },
+                { mac: '02:42:AC:11:00:02', prefix: 'fd00::',     label: 'Docker / ULA' },
               ].map((ex, i) => (
                 <button
                   key={i}
                   onClick={() => { setMacInput(ex.mac); setPrefixInput(ex.prefix); }}
-                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border transition-all"
+                  className="inline-flex flex-col text-left gap-0 text-xs px-2.5 py-1.5 rounded-lg bg-secondary/60 text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent hover:border-border transition-all"
                 >
                   <span className="font-mono">{ex.mac}</span>
+                  <span className="text-[10px] text-muted-foreground/70">{ex.label}</span>
                 </button>
               ))}
             </div>
-          </details>
+          </div>
 
           {/* Error */}
           <AnimatePresence>
@@ -246,11 +250,11 @@ export function EUI64View() {
                 </summary>
                 <div className="px-5 pb-4 text-xs text-muted-foreground border-t border-border pt-3 space-y-3">
                   <ol className="list-decimal list-inside space-y-1 ml-1">
-                    <li>O MAC de 48 bits é dividido em duas metades</li>
-                    <li>Os bytes <span className="font-mono text-primary">FF:FE</span> são inseridos no meio → 64 bits</li>
-                    <li>O 7º bit (U/L) do primeiro byte é invertido</li>
-                    <li>O resultado é combinado com o prefixo /64 para o endereço SLAAC</li>
-                    <li>O mesmo identificador com <span className="font-mono text-primary">fe80::</span> gera o link-local</li>
+                    <li>O MAC de 48 bits é dividido em duas metades de 3 bytes</li>
+                    <li>Os bytes <span className="font-mono text-primary">FF:FE</span> são inseridos no meio → identificador de 64 bits (EUI-64)</li>
+                    <li>Um bit do primeiro byte é modificado para marcar o endereço como localmente gerado</li>
+                    <li>O EUI-64 é combinado com o prefixo de rede /64 → endereço SLAAC completo de 128 bits</li>
+                    <li>O mesmo EUI-64 com o prefixo <span className="font-mono text-primary">fe80::</span> forma o endereço link-local (usado na rede local)</li>
                   </ol>
                   {/* Inline transformation diagram */}
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">

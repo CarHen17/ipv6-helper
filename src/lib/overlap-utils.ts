@@ -139,13 +139,28 @@ export function analyzeOverlaps(lines: string[]): OverlapReport {
     }
   }
 
-  const duplicates = findings.filter(f => f.type === 'duplicate').length;
-  const containments = findings.filter(f => f.type === 'contains' || f.type === 'contained').length;
-  const overlaps = findings.filter(f => f.type === 'overlap').length;
+  // For containment findings, keep only the most-specific (immediate) parent per child.
+  // Transitive containments (e.g. /32 → /64 when /32 → /48 → /64 exists) add noise
+  // without new information, so we suppress them.
+  const childMaxParentPrefix = new Map<number, number>();
+  for (const f of findings) {
+    if (f.type === 'contains') {
+      const prev = childMaxParentPrefix.get(f.blockB.index) ?? -1;
+      if (f.blockA.prefix > prev) childMaxParentPrefix.set(f.blockB.index, f.blockA.prefix);
+    }
+  }
+  const filteredFindings = findings.filter(f => {
+    if (f.type !== 'contains') return true;
+    return childMaxParentPrefix.get(f.blockB.index) === f.blockA.prefix;
+  });
 
-  // Count clean blocks (not involved in any finding)
+  const duplicates = filteredFindings.filter(f => f.type === 'duplicate').length;
+  const containments = filteredFindings.filter(f => f.type === 'contains' || f.type === 'contained').length;
+  const overlaps = filteredFindings.filter(f => f.type === 'overlap').length;
+
+  // Count clean blocks (not involved in any filtered finding)
   const involvedIndices = new Set<number>();
-  findings.forEach(f => {
+  filteredFindings.forEach(f => {
     involvedIndices.add(f.blockA.index);
     involvedIndices.add(f.blockB.index);
   });
@@ -153,7 +168,7 @@ export function analyzeOverlaps(lines: string[]): OverlapReport {
 
   return {
     blocks: sorted,
-    findings,
+    findings: filteredFindings,
     errors,
     stats: {
       total: lines.filter(l => l.trim() && !l.trim().startsWith('#') && !l.trim().startsWith('//')).length,

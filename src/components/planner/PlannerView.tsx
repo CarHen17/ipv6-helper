@@ -193,7 +193,10 @@ export function PlannerView() {
         <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
           <Network className="w-5 h-5 text-primary" /> Planejador Hierárquico
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">Planeje hierarquias multi-nível de endereçamento IPv6</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Divida seu bloco IPv6 em múltiplos níveis — como regiões, clientes ou departamentos — e veja
+          quantos blocos e endereços você tem em cada camada.
+        </p>
       </div>
 
       <div className="space-y-6">
@@ -201,7 +204,7 @@ export function PlannerView() {
         <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-5" {...{initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] }}}>
           {/* Presets */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Presets</label>
+            <label className="block text-sm font-medium text-foreground mb-2">Modelos prontos <span className="font-normal text-muted-foreground">(carrega um exemplo para o seu tipo de organização)</span></label>
             <div className="flex flex-wrap gap-2">
               {[
                 { key: 'isp' as const, icon: Globe, label: 'ISP' },
@@ -222,18 +225,22 @@ export function PlannerView() {
 
           {/* Base block */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Bloco Base</label>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Bloco Base <span className="font-normal text-muted-foreground">(alocação recebida do seu provedor)</span>
+            </label>
             <Input
               value={baseBlock}
               onChange={e => setBaseBlock(e.target.value)}
-              placeholder="Ex.: 2001:db8::/32"
+              placeholder="Ex.: 2001:db8::/32  (bloco que você recebeu)"
               className="font-mono text-sm bg-secondary/60 h-11"
             />
           </div>
 
           {/* Levels */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Níveis</label>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Níveis de subdivisão <span className="font-normal text-muted-foreground">(ex: Região → Cidade → Cliente)</span>
+            </label>
             <div className="space-y-2 mb-2.5">
               {levels.map((level, i) => (
                 <div key={level.id} className="flex items-center gap-2">
@@ -243,7 +250,7 @@ export function PlannerView() {
                   <Input
                     value={level.label}
                     onChange={e => updateLevel(i, 'label', e.target.value)}
-                    placeholder="Ex: Região"
+                    placeholder="Nome (ex: Região, Cliente, Setor)"
                     className="bg-secondary/60 flex-1 h-9 text-sm"
                   />
                   <span className="text-muted-foreground font-bold text-sm">/</span>
