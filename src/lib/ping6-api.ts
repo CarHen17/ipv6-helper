@@ -1,5 +1,5 @@
 // External API integrations for network tools
-// - DNS    : DNS over HTTPS (Cloudflare / Google / Quad9) — no auth required
+// - DNS    : DNS over HTTPS (Cloudflare / Google / Quad9 :5053) — no auth required
 // - /myip  : ping6.net — no auth required
 // - /validate : ping6.net — no auth required
 // - Ping / Traceroute : Globalping API — free, no auth (500 tests/hour)
