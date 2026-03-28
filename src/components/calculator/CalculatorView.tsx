@@ -236,10 +236,18 @@ export function CalculatorView() {
             </form>
           </motion.div>
 
-          {/* Step 2: Prefix Selection */}
-          <AnimatePresence>
-            {ctx.currentStep === 2 && ctx.mainBlock && (
-              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-5 md:p-6">
+          {/* Steps 2 / Loading / 3 — single AnimatePresence so exit completes
+               before the next panel enters (no conflicting y-directions). */}
+          <AnimatePresence mode="wait">
+            {ctx.currentStep === 2 && ctx.mainBlock && !ctx.isLoading && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="bg-card rounded-xl border border-border p-5 md:p-6"
+              >
                 <h3 className="text-sm font-medium text-foreground mb-4">Escolha o prefixo para divisão:</h3>
                 <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-11 gap-1">
                   {Array.from({ length: 128 - ctx.mainBlock.prefix }, (_, i) => ctx.mainBlock!.prefix + 1 + i).map(prefix => {
@@ -247,14 +255,14 @@ export function CalculatorView() {
                     return (
                       <button
                         key={prefix}
-                         onClick={() => {
-                           const count = ctx.getSubnetCount(prefix);
-                           if (count && count > IPV6_CONFIG.LARGE_SUBNET_THRESHOLD) {
-                             setConfirmPrefix({ prefix, count });
-                           } else {
-                             ctx.selecionarPrefixo(prefix);
-                           }
-                         }}
+                        onClick={() => {
+                          const count = ctx.getSubnetCount(prefix);
+                          if (count && count > IPV6_CONFIG.LARGE_SUBNET_THRESHOLD) {
+                            setConfirmPrefix({ prefix, count });
+                          } else {
+                            ctx.selecionarPrefixo(prefix);
+                          }
+                        }}
                         className={cn(
                           "py-1.5 rounded text-[11px] font-mono font-medium transition-all duration-150 border text-center",
                           isCommon
@@ -270,12 +278,16 @@ export function CalculatorView() {
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
 
-          {/* Loading */}
-          <AnimatePresence>
             {ctx.isLoading && (
-              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border p-8 flex flex-col items-center gap-4">
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="bg-card rounded-xl border border-border p-8 flex flex-col items-center gap-4"
+              >
                 <Loader2 className="w-7 h-7 animate-spin text-primary" />
                 <p className="text-sm text-muted-foreground">Gerando sub-redes ({ctx.loadingProgress}%)...</p>
                 <div className="w-full max-w-xs h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -286,12 +298,16 @@ export function CalculatorView() {
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
 
-          {/* Step 3: Results Table */}
-          <AnimatePresence>
             {ctx.subRedesGeradas.length > 0 && !ctx.isLoading && (
-              <motion.div {...fadeUp} className="bg-card rounded-xl border border-border overflow-hidden">
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="bg-card rounded-xl border border-border overflow-hidden"
+              >
                 {/* Table header bar */}
                 <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-2.5">
