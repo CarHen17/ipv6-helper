@@ -22,6 +22,24 @@
 </head>
 
   <body>
+    <script>
+      /* Cache-bust on stale chunk load failures (GitHub Pages CDN delay).
+         If any <script>/<link> asset 404s and we haven't already tried a
+         cache-bust reload, redirect with ?_crld=1 so the browser is forced
+         to fetch a fresh index.html instead of the stale cached version. */
+      (function () {
+        var PARAM = '_crld';
+        if (new URLSearchParams(location.search).has(PARAM)) return;
+        window.addEventListener('error', function (e) {
+          var t = e.target;
+          if (t && t !== window && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) {
+            var url = new URL(location.href);
+            url.searchParams.set(PARAM, '1');
+            location.replace(url.toString());
+          }
+        }, true /* capture phase, before React mounts */);
+      })();
+    </script>
     <div id="root"></div>
     <noscript>
       <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;text-align:center;padding:2rem">
