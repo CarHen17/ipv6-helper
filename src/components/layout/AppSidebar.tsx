@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch, ArrowRightLeft, FileSearch } from 'lucide-react';
+import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch, ArrowRightLeft, FileSearch, Globe2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { useTheme } from '@/hooks/useTheme';
@@ -25,8 +25,9 @@ const navItems = [
   { path: '/network',   label: 'Rede (Ping)',     icon: Activity },
   { path: '/readiness', label: 'Verificador IPv6', icon: ScanSearch },
   { path: '/ipv4to6',   label: 'IPv4 → IPv6',     icon: ArrowRightLeft },
-  { path: '/reverse',   label: 'IP Reverso',      icon: FileSearch },
-  { path: '/overlap',   label: 'Sobreposição',    icon: ShieldCheck },
+  { path: '/reverse',    label: 'IP Reverso',      icon: FileSearch },
+  { path: '/reverse-ip', label: 'Reverse IP',     icon: Globe2 },
+  { path: '/overlap',    label: 'Sobreposição',   icon: ShieldCheck },
   { path: '/planner',   label: 'Planejador',      icon: Network },
   { path: '/eui64',     label: 'EUI-64 / SLAAC',  icon: Cpu },
   { path: '/history',   label: 'Histórico',       icon: Clock },
