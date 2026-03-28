@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
-  Network, X, Plus, Trash2, Calculator, Globe, Server, Building2, Smartphone,
-  Copy, ChevronDown, Info, Table as TableIcon, ArrowUp, Layers,
+  Network, X, Plus, Calculator, Globe, Server, Building2, Smartphone,
+  Copy, ChevronDown, Info, Table as TableIcon, ArrowUp, Layers, RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -288,10 +288,14 @@ export function PlannerView() {
             <Button onClick={() => calculate()} className="gap-2 h-11 px-5 text-sm">
               <Calculator className="w-3.5 h-3.5" /> Calcular
             </Button>
-            <Button variant="outline" onClick={clearPlanner} className="gap-2 h-11 text-sm">
-              <Trash2 className="w-3.5 h-3.5" /> Limpar
-            </Button>
           </div>
+          {results && base && (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={clearPlanner} className="gap-1.5 text-xs text-muted-foreground h-8">
+                <RefreshCw className="w-3 h-3" /> Limpar
+              </Button>
+            </div>
+          )}
         </motion.div>
       </div>
 

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { RefreshCw, Copy, RotateCcw, ArrowLeftRight, Info, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, Copy, ArrowLeftRight, Info, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { reverseIPv6, REVERSE_EXAMPLES, type ReverseResult } from '@/lib/ipv6-reverse-utils';
 
@@ -141,14 +141,18 @@ export function IPv6ReverseView() {
           </div>
         </details>
 
-        <div className="flex items-center justify-end gap-3 pt-1">
-          <Button variant="outline" onClick={handleReset} className="gap-2 h-11 text-sm" disabled={!input && !result}>
-            <RotateCcw className="w-4 h-4" /> Limpar
-          </Button>
+        <div className="flex items-center justify-end pt-1">
           <Button onClick={handleConvert} className="gap-2 h-11 px-5 text-sm" disabled={!input.trim()}>
-            <RefreshCw className="w-4 h-4" /> Converter
+            <ArrowLeftRight className="w-4 h-4" /> Converter
           </Button>
         </div>
+        {result && (
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
+              <RefreshCw className="w-3 h-3" /> Limpar
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Results */}

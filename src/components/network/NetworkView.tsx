@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Activity, RotateCcw, Loader2, AlertTriangle, CheckCircle2,
+  Activity, RefreshCw, Loader2, AlertTriangle, CheckCircle2,
   XCircle, Wifi, GitBranch, ChevronDown, ChevronUp, Terminal,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -122,16 +122,19 @@ function PingTab() {
             </div>
           </details>
         </div>
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => { setTarget(''); setResult(null); setError(''); }}
-            disabled={!target && !result} className="gap-2 h-11 text-sm">
-            <RotateCcw className="w-4 h-4" /> Limpar
-          </Button>
+        <div className="flex justify-end">
           <Button onClick={handlePing} disabled={loading || !target.trim()} className="gap-2 h-11 px-5 text-sm">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wifi className="w-4 h-4" />}
             Pingar
           </Button>
         </div>
+        {(result || error) && (
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => { setTarget(''); setResult(null); setError(''); }} className="gap-1.5 text-xs text-muted-foreground h-8">
+              <RefreshCw className="w-3 h-3" /> Limpar
+            </Button>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>
@@ -284,16 +287,19 @@ function TracerouteTab() {
             </div>
           </details>
         </div>
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={() => { setTarget(''); setResult(null); setError(''); }}
-            disabled={!target && !result} className="gap-2 h-11 text-sm">
-            <RotateCcw className="w-4 h-4" /> Limpar
-          </Button>
+        <div className="flex justify-end">
           <Button onClick={handleTrace} disabled={loading || !target.trim()} className="gap-2 h-11 px-5 text-sm">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
             Rastrear
           </Button>
         </div>
+        {(result || error) && (
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={() => { setTarget(''); setResult(null); setError(''); }} className="gap-1.5 text-xs text-muted-foreground h-8">
+              <RefreshCw className="w-3 h-3" /> Limpar
+            </Button>
+          </div>
+        )}
       </div>
 
       <AnimatePresence>

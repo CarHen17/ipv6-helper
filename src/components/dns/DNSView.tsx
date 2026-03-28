@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Search, Copy, RotateCcw, Globe, Clock, Server, Loader2,
+  Search, Copy, RefreshCw, Globe, Clock, Server, Loader2,
   AlertTriangle, CheckCircle2, ChevronDown, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -191,15 +191,7 @@ export function DNSView() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-1">
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              className="gap-2 h-11 text-sm"
-              disabled={!hostname && !result}
-            >
-              <RotateCcw className="w-4 h-4" /> Limpar
-            </Button>
+          <div className="flex items-center justify-end pt-1">
             <Button
               onClick={handleLookup}
               className="gap-2 h-11 px-5 text-sm"
@@ -212,6 +204,13 @@ export function DNSView() {
               Consultar
             </Button>
           </div>
+          {(result || error) && !loading && (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
+                <RefreshCw className="w-3 h-3" /> Limpar
+              </Button>
+            </div>
+          )}
         </motion.div>
 
         {/* Error */}
