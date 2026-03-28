@@ -7,8 +7,8 @@
     <meta name="description" content="Calculadora de sub-redes IPv6 com divisão hierárquica, agregação de blocos e planejamento de endereçamento.">
     <meta name="author" content="" />
 
-    
-    
+
+
     <meta property="og:type" content="website" />
 
     <meta name="twitter:card" content="summary" />
@@ -23,24 +23,72 @@
 
   <body>
     <script>
-      /* Cache-bust on stale chunk load failures (GitHub Pages CDN delay).
-         If any <script>/<link> asset 404s and we haven't already tried a
-         cache-bust reload, redirect with ?_crld=1 so the browser is forced
-         to fetch a fresh index.html instead of the stale cached version. */
+      /*
+       * Asset-load failure recovery (runs BEFORE React, in capture phase).
+       *
+       * Problem: after a GitHub Pages deploy the CDN may still serve the OLD
+       * index.html to users who cached it.  That old HTML references old
+       * content-hashed JS/CSS filenames that no longer exist → 404 → blank page.
+       * ErrorBoundary can't help here because React never mounts.
+       *
+       * Solution:
+       *  1. Listen (capture phase) for any SCRIPT / LINK element that fires an
+       *     error event (network error or 404 on the asset).
+       *  2. Use sessionStorage to count retries so we never loop infinitely.
+       *     sessionStorage survives location.replace() in the same tab.
+       *  3. Each retry appends a unique timestamp (?_v=<ts>) to the URL so the
+       *     CDN treats it as a brand-new request and can't serve a cached copy.
+       *  4. On success main.tsx clears the counter so future real errors still
+       *     get their full quota of retries.
+       */
       (function () {
-        var PARAM = '_crld';
-        if (new URLSearchParams(location.search).has(PARAM)) return;
+        var KEY = '_assetReloads';
+        var MAX = 3;
         window.addEventListener('error', function (e) {
           var t = e.target;
-          if (t && t !== window && (t.tagName === 'SCRIPT' || t.tagName === 'LINK')) {
-            var url = new URL(location.href);
-            url.searchParams.set(PARAM, '1');
-            location.replace(url.toString());
-          }
-        }, true /* capture phase, before React mounts */);
+          if (!t || t === window || (t.tagName !== 'SCRIPT' && t.tagName !== 'LINK')) return;
+          var count = parseInt(sessionStorage.getItem(KEY) || '0', 10);
+          if (count >= MAX) return; // give up after MAX attempts
+          sessionStorage.setItem(KEY, String(count + 1));
+          var url = new URL(location.href);
+          url.searchParams.set('_v', Date.now().toString(36)); // unique → bypasses CDN cache
+          url.searchParams.delete('_crld');                    // remove old param if present
+          location.replace(url.toString());
+        }, true /* capture phase */);
       })();
     </script>
+
     <div id="root"></div>
+
+    <!--
+      Last-resort fallback UI.
+      Shown by the timeout script below if React hasn't rendered anything
+      within 12 seconds (covers both asset-404 scenarios that slipped past
+      the handler above AND rare runtime crashes before React mounts).
+      Hidden immediately by main.tsx once the app mounts successfully.
+    -->
+    <div id="app-load-error" style="display:none;position:fixed;inset:0;background:#09090b;color:#71717a;font-family:system-ui,sans-serif;align-items:center;justify-content:center;flex-direction:column;gap:1rem;text-align:center;padding:2rem;">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p style="color:#fafafa;font-size:1rem;font-weight:600;margin:0;">Erro ao carregar</p>
+      <p style="font-size:.875rem;margin:0;max-width:26rem;">O aplicativo não inicializou corretamente, possivelmente após uma atualização recente.</p>
+      <button
+        onclick="sessionStorage.removeItem('_assetReloads');var u=new URL(location.href);u.searchParams.delete('_v');u.searchParams.delete('_crld');location.replace(u.origin+u.pathname+u.hash);"
+        style="margin-top:.5rem;background:#3b82f6;color:#fff;border:none;padding:.5rem 1.5rem;border-radius:.5rem;cursor:pointer;font-size:.875rem;font-weight:500;">
+        Tentar novamente
+      </button>
+    </div>
+
+    <script>
+      /* Show the fallback UI if #root is still empty after 12 seconds. */
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        var err  = document.getElementById('app-load-error');
+        if (err && root && !root.firstElementChild) {
+          err.style.display = 'flex';
+        }
+      }, 12000);
+    </script>
+
     <noscript>
       <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;text-align:center;padding:2rem">
         <p>Esta aplicação requer JavaScript. Por favor, habilite JavaScript no seu navegador.</p>

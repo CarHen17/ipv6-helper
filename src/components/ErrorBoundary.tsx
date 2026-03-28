@@ -12,12 +12,12 @@ interface State {
   isChunkError: boolean;
 }
 
-/** Query param added to the URL before a chunk-error reload, so we don't loop. */
-const CHUNK_RELOAD_PARAM = '_crld';
+const CHUNK_RELOAD_KEY = '_chunkReload';
 
+/** Returns true if we already attempted a chunk-error reload this session. */
 function alreadyReloaded(): boolean {
   try {
-    return new URL(window.location.href).searchParams.has(CHUNK_RELOAD_PARAM);
+    return sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1';
   } catch {
     return false;
   }
@@ -35,7 +35,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
       /loading chunk/i.test(error.message) ||
       /failed to fetch dynamically imported module/i.test(error.message);
 
-    // If we've already tried a reload, don't loop — just show the error UI
+    // If we've already tried a reload this session, don't loop — show error UI
     return { hasError: true, error, isChunkError: isChunk && !alreadyReloaded() };
   }
 
@@ -45,11 +45,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidUpdate(_: Props, prev: State) {
     if (this.state.isChunkError && !prev.isChunkError) {
-      // Use a cache-busting URL so the browser fetches a fresh index.html,
-      // bypassing any CDN/browser cache that still has the old chunk hashes.
+      // Mark that we've attempted a chunk reload so we don't loop.
+      // Use sessionStorage (survives location.replace in the same tab) instead
+      // of a URL param — URL params can be cached by CDNs and served stale.
+      try { sessionStorage.setItem(CHUNK_RELOAD_KEY, '1'); } catch {}
+      // Add unique timestamp → CDN treats it as a fresh request for index.html.
       try {
         const url = new URL(window.location.href);
-        url.searchParams.set(CHUNK_RELOAD_PARAM, '1');
+        url.searchParams.set('_v', Date.now().toString(36));
+        url.searchParams.delete('_crld');
         window.location.replace(url.toString());
       } catch {
         window.location.reload();
@@ -93,14 +97,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-/** Call once at app startup to strip the chunk-reload marker from the URL. */
+/** Call once at app startup to strip cache-bust params from the URL bar. */
 export function cleanChunkReloadParam() {
   try {
     const url = new URL(window.location.href);
-    if (url.searchParams.has(CHUNK_RELOAD_PARAM)) {
-      url.searchParams.delete(CHUNK_RELOAD_PARAM);
-      window.history.replaceState(null, '', url.toString());
-    }
+    let changed = false;
+    if (url.searchParams.has('_crld')) { url.searchParams.delete('_crld'); changed = true; }
+    if (url.searchParams.has('_v'))    { url.searchParams.delete('_v');    changed = true; }
+    if (changed) window.history.replaceState(null, '', url.toString());
+    // Clear the chunk-reload flag now that the app loaded successfully
+    sessionStorage.removeItem(CHUNK_RELOAD_KEY);
   } catch {
     // ignore
   }

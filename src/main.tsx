@@ -9,7 +9,13 @@ if (savedTheme === 'dark' || savedTheme === null) {
   document.documentElement.classList.add('dark');
 }
 
-// Remove the chunk-reload marker that ErrorBoundary adds for cache-busting
+// Successful load — reset the asset-reload retry counter so future real
+// errors get their full quota of retries, and clean any cache-bust params.
+try { sessionStorage.removeItem('_assetReloads'); } catch {}
 cleanChunkReloadParam();
+
+// Hide the last-resort fallback div (it only appears on failed loads).
+const loadErrEl = document.getElementById('app-load-error');
+if (loadErrEl) loadErrEl.style.display = 'none';
 
 createRoot(document.getElementById("root")!).render(<App />);
