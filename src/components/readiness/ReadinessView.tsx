@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Search, Globe, Loader2, CheckCircle2, XCircle, AlertTriangle,
-  RotateCcw, Copy, Plus, Trash2, Zap,
+  RefreshCw, Copy, Plus, Trash2, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { lookupDNS, type DNSRecord } from '@/lib/ping6-api';
@@ -208,15 +208,7 @@ export function ReadinessView() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-1">
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              className="gap-2 h-11 text-sm"
-              disabled={loading}
-            >
-              <RotateCcw className="w-4 h-4" /> Limpar
-            </Button>
+          <div className="flex items-center justify-end pt-1">
             <Button
               onClick={handleCheck}
               className="gap-2 h-11 px-5 text-sm"
@@ -229,6 +221,13 @@ export function ReadinessView() {
               Verificar
             </Button>
           </div>
+          {results.length > 0 && !loading && (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
+                <RefreshCw className="w-3 h-3" /> Limpar
+              </Button>
+            </div>
+          )}
         </motion.div>
 
         {/* Results */}

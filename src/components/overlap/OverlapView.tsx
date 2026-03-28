@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
-  ShieldCheck, ShieldAlert, Search, Copy, RotateCcw,
+  ShieldCheck, ShieldAlert, Search, Copy, RefreshCw,
   Info, Layers, AlertTriangle, CheckCircle2, XCircle, ChevronDown, Clipboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -198,14 +198,18 @@ export function OverlapView() {
               {blockCount > 0 ? `${blockCount} bloco(s) para analisar` : 'Suporta comentários com # e linhas em branco'}
             </p>
             <div className="flex gap-3 w-full sm:w-auto">
-              <Button variant="outline" onClick={handleReset} className="gap-2 h-11 text-sm flex-1 sm:flex-none" disabled={!input && !report}>
-                <RotateCcw className="w-4 h-4" /> Limpar
-              </Button>
               <Button onClick={handleAnalyze} className="gap-2 h-11 px-5 text-sm flex-1 sm:flex-none" disabled={!input.trim()}>
                 <Search className="w-4 h-4" /> Analisar
               </Button>
             </div>
           </div>
+          {report && (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
+                <RefreshCw className="w-3 h-3" /> Limpar
+              </Button>
+            </div>
+          )}
         </motion.div>
 
         {/* Results */}

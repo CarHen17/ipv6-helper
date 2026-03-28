@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Cpu, Copy, RotateCcw, ArrowRight, Info, Globe, Link2, Fingerprint, Check, Zap } from 'lucide-react';
+import { Cpu, Copy, RefreshCw, ArrowRight, Info, Globe, Link2, Fingerprint, Check, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { isValidMAC, isValidPrefix64, computeEUI64, type EUI64Result } from '@/lib/eui64-utils';
 
@@ -151,7 +151,7 @@ export function EUI64View() {
                     onClick={() => setMacInput('')}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    <RotateCcw className="w-3 h-3" />
+                    <RefreshCw className="w-3 h-3" />
                   </button>
                 )}
               </div>
@@ -217,10 +217,14 @@ export function EUI64View() {
             <Button onClick={handleCalculate} className="gap-2 h-11 px-5 text-sm">
               <ArrowRight className="w-4 h-4" /> Calcular
             </Button>
-            <Button variant="outline" onClick={handleReset} className="gap-2 h-11 text-sm">
-              <RotateCcw className="w-4 h-4" /> Limpar
-            </Button>
           </div>
+          {result && (
+            <div className="flex justify-end">
+              <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
+                <RefreshCw className="w-3 h-3" /> Limpar
+              </Button>
+            </div>
+          )}
         </motion.div>
 
         {/* Results */}
