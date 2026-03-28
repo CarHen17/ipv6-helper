@@ -7,7 +7,7 @@ import {
   Globe2, Search, Loader2, RefreshCw, AlertTriangle, Copy, ExternalLink, Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { lookupPTR, lookupHostedDomains, normaliseIPv6, type PTRResult, type HackerTargetResult } from '@/lib/reverse-ip-api';
+import { lookupPTR, lookupHostedDomains, lookupCertDomains, mergeDomains, normaliseIPv6, type PTRResult, type HackerTargetResult } from '@/lib/reverse-ip-api';
 import { lookupGeo, countryFlag, type GeoInfo } from '@/lib/geo-utils';
 
 const fadeUp = {
@@ -35,9 +35,15 @@ export function ReverseIPLookupView() {
 
   const [ptrResult,     setPtrResult]     = useState<PTRResult | null>(null);
   const [domainsResult, setDomainsResult] = useState<HackerTargetResult | null>(null);
+  const [certDomains,   setCertDomains]   = useState<string[] | null>(null);
   const [geo,           setGeo]           = useState<GeoInfo | null>(null);
 
-  const hasResult = !!(ptrResult || domainsResult || geo);
+  const hasResult = !!(ptrResult || domainsResult || certDomains || geo);
+
+  const allDomains = mergeDomains(
+    domainsResult?.domains ?? [],
+    certDomains ?? [],
+  );
 
   const handleSearch = async () => {
     const raw = ip.trim();
@@ -50,17 +56,20 @@ export function ReverseIPLookupView() {
     setError('');
     setPtrResult(null);
     setDomainsResult(null);
+    setCertDomains(null);
     setGeo(null);
     setSearched(canonical);
 
-    const [ptr, domains, geoData] = await Promise.allSettled([
+    const [ptr, domains, certs, geoData] = await Promise.allSettled([
       lookupPTR(canonical),
       lookupHostedDomains(canonical),
+      lookupCertDomains(canonical),
       lookupGeo(canonical),
     ]);
 
     if (ptr.status === 'fulfilled')     setPtrResult(ptr.value);
     if (domains.status === 'fulfilled') setDomainsResult(domains.value);
+    if (certs.status === 'fulfilled')   setCertDomains(certs.value);
     if (geoData.status === 'fulfilled') setGeo(geoData.value);
 
     setLoading(false);
@@ -68,7 +77,7 @@ export function ReverseIPLookupView() {
 
   const handleReset = () => {
     setIp(''); setError(''); setSearched('');
-    setPtrResult(null); setDomainsResult(null); setGeo(null);
+    setPtrResult(null); setDomainsResult(null); setCertDomains(null); setGeo(null);
   };
 
   return (
@@ -212,25 +221,39 @@ export function ReverseIPLookupView() {
                       <td className="px-5 py-3">
                         {domainsResult?.limited ? (
                           <span className="text-yellow-400 flex items-center gap-1.5">
-                            <AlertTriangle className="w-3.5 h-3.5" /> Limite diário atingido
-                          </span>
-                        ) : domainsResult ? (
-                          <span className={cn('font-semibold', domainsResult.domains.length > 0 ? 'text-primary' : 'text-muted-foreground')}>
-                            {domainsResult.domains.length}
+                            <AlertTriangle className="w-3.5 h-3.5" /> Limite diário atingido (HackerTarget)
                           </span>
                         ) : (
-                          <span className="text-muted-foreground/60">—</span>
+                          <div className="space-y-1">
+                            <span className={cn('font-semibold', allDomains.length > 0 ? 'text-primary' : 'text-muted-foreground')}>
+                              {allDomains.length}
+                            </span>
+                            {(domainsResult || certDomains) && (
+                              <div className="flex gap-2 flex-wrap">
+                                {domainsResult && (
+                                  <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
+                                    HackerTarget: {domainsResult.domains.length}
+                                  </span>
+                                )}
+                                {certDomains && (
+                                  <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
+                                    crt.sh: {certDomains.length}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </td>
                     </tr>
 
                     {/* Domain list row */}
-                    {domainsResult && domainsResult.domains.length > 0 && (
+                    {allDomains.length > 0 && (
                       <tr>
                         <td className="px-5 py-4 font-medium text-foreground align-top">Nome do Domínio<br/>Hospedado</td>
                         <td className="px-5 py-4">
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1.5">
-                            {domainsResult.domains.map((domain, i) => (
+                            {allDomains.map((domain, i) => (
                               <div key={i} className="flex items-center gap-1 group min-w-0">
                                 <a href={`https://${domain}`} target="_blank" rel="noopener noreferrer"
                                   className="text-primary hover:text-primary/80 font-mono text-xs truncate transition-colors flex-1">
@@ -252,13 +275,13 @@ export function ReverseIPLookupView() {
                     )}
 
                     {/* No domains */}
-                    {domainsResult && !domainsResult.limited && domainsResult.domains.length === 0 && (
+                    {allDomains.length === 0 && !domainsResult?.limited && (
                       <tr>
                         <td className="px-5 py-4 font-medium text-foreground align-top">Nome do Domínio<br/>Hospedado</td>
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-2 text-muted-foreground/60">
                             <Info className="w-3.5 h-3.5 shrink-0" />
-                            <span className="text-sm italic">Nenhum domínio encontrado — cobertura de IPv6 é limitada nesta base de dados.</span>
+                            <span className="text-sm italic">Nenhum domínio encontrado nas bases consultadas.</span>
                           </div>
                         </td>
                       </tr>
@@ -268,9 +291,9 @@ export function ReverseIPLookupView() {
 
                 {/* Footer */}
                 <div className="px-5 py-2.5 border-t border-border/40 flex items-center justify-between bg-secondary/10">
-                  <span className="text-[11px] text-muted-foreground/50">Fonte: HackerTarget Reverse IP · DNS over HTTPS · ipinfo.io</span>
-                  {domainsResult && domainsResult.domains.length > 0 && (
-                    <button onClick={() => copyToClipboard(domainsResult.domains.join('\n'))}
+                  <span className="text-[11px] text-muted-foreground/50">Fontes: HackerTarget · crt.sh Certificate Transparency · DoH · ipinfo.io</span>
+                  {allDomains.length > 0 && (
+                    <button onClick={() => copyToClipboard(allDomains.join('\n'))}
                       className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
                       <Copy className="w-3 h-3" /> Copiar lista
                     </button>

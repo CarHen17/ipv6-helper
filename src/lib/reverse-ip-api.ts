@@ -1,6 +1,7 @@
 // Reverse IP Lookup utilities
 // - PTR lookup via DNS over HTTPS (Cloudflare)
 // - Domain list via HackerTarget public API (free, no auth, ~100 req/day)
+// - Domain list via crt.sh Certificate Transparency (free, no auth)
 
 import { lookupDNS } from './ping6-api';
 import { reverseIPv6 } from './ipv6-reverse-utils';
@@ -92,3 +93,62 @@ export async function lookupHostedDomains(ip: string): Promise<HackerTargetResul
     return { domains: [], limited: false, error: true };
   }
 }
+
+interface CrtShEntry {
+  name_value: string;
+  common_name: string;
+}
+
+/**
+ * Query crt.sh Certificate Transparency logs for domains associated with an IP.
+ * Finds SSL certificates that include the IP as a Subject Alternative Name.
+ */
+export async function lookupCertDomains(ip: string): Promise<string[]> {
+  try {
+    const res = await withTimeout(
+      fetch(`https://crt.sh/?q=${encodeURIComponent(ip)}&output=json`, {
+        headers: { Accept: 'application/json' },
+      }),
+      TIMEOUT_MS
+    );
+    if (!res.ok) return [];
+
+    const data = await res.json() as CrtShEntry[];
+    if (!Array.isArray(data)) return [];
+
+    const seen = new Set<string>();
+    const ipPattern = /^[\d.:]+$/; // skip raw IP entries
+
+    for (const entry of data) {
+      const names = [
+        ...entry.name_value.split('\n'),
+        entry.common_name,
+      ];
+      for (const raw of names) {
+        const name = raw.trim().replace(/^\*\./, '').toLowerCase(); // strip wildcard
+        if (
+          name &&
+          name.includes('.') &&
+          !ipPattern.test(name) &&
+          !name.includes('\0')
+        ) {
+          seen.add(name);
+        }
+      }
+    }
+
+    return Array.from(seen).sort();
+  } catch {
+    return [];
+  }
+}
+
+/** Merge and deduplicate domain lists from multiple sources. */
+export function mergeDomains(...lists: string[][]): string[] {
+  const seen = new Set<string>();
+  for (const list of lists) {
+    for (const d of list) seen.add(d.toLowerCase().trim());
+  }
+  return Array.from(seen).sort();
+}
+
