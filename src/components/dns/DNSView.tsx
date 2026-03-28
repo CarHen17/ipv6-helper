@@ -26,7 +26,7 @@ const DNS_TYPES: DNSRecordType[] = ['AAAA', 'A', 'MX', 'TXT', 'NS', 'CNAME', 'SO
 const DNS_RESOLVERS: { value: DNSResolver; label: string; color: string }[] = [
   { value: 'cloudflare', label: 'Cloudflare', color: 'text-orange-400' },
   { value: 'google',     label: 'Google',     color: 'text-blue-400' },
-  { value: 'quad9',      label: 'Quad9',      color: 'text-purple-400' },
+  { value: 'dnssb',      label: 'DNS.SB',     color: 'text-purple-400' },
 ];
 
 const TYPE_COLORS: Record<string, string> = {

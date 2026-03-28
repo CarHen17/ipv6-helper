@@ -18,7 +18,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export type DNSRecordType = 'AAAA' | 'A' | 'MX' | 'TXT' | 'NS' | 'CNAME' | 'SOA' | 'PTR';
-export type DNSResolver   = 'cloudflare' | 'google' | 'quad9';
+export type DNSResolver   = 'cloudflare' | 'google' | 'dnssb';
 
 export interface MyIPResult {
   ipv4?: string;
@@ -162,7 +162,7 @@ const DNS_STATUS: Record<number, string> = {
 const DOH_ENDPOINTS: Record<DNSResolver, string> = {
   cloudflare: 'https://cloudflare-dns.com/dns-query',
   google:     'https://dns.google/resolve',
-  quad9:      'https://dns.quad9.net/dns-query',
+  dnssb:      'https://doh.dns.sb/dns-query',
 };
 
 interface DoHResponse {
