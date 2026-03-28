@@ -24,8 +24,8 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-radix': [
+          'lib-react': ['react', 'react-dom', 'react-router-dom'],
+          'lib-radix': [
             '@radix-ui/react-accordion', '@radix-ui/react-alert-dialog',
             '@radix-ui/react-checkbox', '@radix-ui/react-collapsible',
             '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu',
@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => ({
             '@radix-ui/react-toggle', '@radix-ui/react-toggle-group',
             '@radix-ui/react-tooltip',
           ],
-          'vendor-motion': ['framer-motion'],
+          'lib-motion': ['framer-motion'],
         },
       },
     },
