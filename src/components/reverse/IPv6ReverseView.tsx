@@ -82,10 +82,10 @@ export function IPv6ReverseView() {
     <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...fadeUp}>
       <div className="mb-8">
         <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-          <ArrowLeftRight className="w-5 h-5 text-primary" /> IP Reverso IPv6
+          <ArrowLeftRight className="w-5 h-5 text-primary" /> Zona PTR
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Gera a notação reversa DNS (ip6.arpa) usada em registros PTR e delegações de zona de DNS reverso.
+          Gera a notação ip6.arpa usada em registros PTR e delegações de zona de DNS reverso.
         </p>
       </div>
 
