@@ -191,7 +191,7 @@ export function DNSView() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end pt-1">
+          <div className="flex flex-col items-end gap-1 pt-1">
             <Button
               onClick={handleLookup}
               className="gap-2 h-11 px-5 text-sm"
@@ -203,14 +203,12 @@ export function DNSView() {
               }
               Consultar
             </Button>
-          </div>
-          {(result || error) && !loading && (
-            <div className="flex justify-end">
+            {(result || error) && !loading && (
               <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
                 <RefreshCw className="w-3 h-3" /> Limpar
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </motion.div>
 
         {/* Error */}

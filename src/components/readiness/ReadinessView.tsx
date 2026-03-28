@@ -208,7 +208,7 @@ export function ReadinessView() {
             </Button>
           </div>
 
-          <div className="flex items-center justify-end pt-1">
+          <div className="flex flex-col items-end gap-1 pt-1">
             <Button
               onClick={handleCheck}
               className="gap-2 h-11 px-5 text-sm"
@@ -220,14 +220,12 @@ export function ReadinessView() {
               }
               Verificar
             </Button>
-          </div>
-          {results.length > 0 && !loading && (
-            <div className="flex justify-end">
+            {results.length > 0 && !loading && (
               <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
                 <RefreshCw className="w-3 h-3" /> Limpar
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </motion.div>
 
         {/* Results */}

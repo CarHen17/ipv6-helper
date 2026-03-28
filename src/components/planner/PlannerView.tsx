@@ -284,18 +284,16 @@ export function PlannerView() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3">
+          <div className="flex flex-col items-end gap-1">
             <Button onClick={() => calculate()} className="gap-2 h-11 px-5 text-sm">
               <Calculator className="w-3.5 h-3.5" /> Calcular
             </Button>
-          </div>
-          {results && base && (
-            <div className="flex justify-end">
+            {results && base && (
               <Button variant="ghost" size="sm" onClick={clearPlanner} className="gap-1.5 text-xs text-muted-foreground h-8">
                 <RefreshCw className="w-3 h-3" /> Limpar
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </motion.div>
       </div>
 
