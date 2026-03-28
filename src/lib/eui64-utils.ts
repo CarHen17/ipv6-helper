@@ -78,7 +78,7 @@ function shortenAddress(full: string): string {
     }
   }
   const shortened = parts.map(p => p.replace(/^0+/, '') || '0');
-  if (bestLen >= 1) {
+  if (bestLen > 1) {
     const before = shortened.slice(0, bestStart);
     const after = shortened.slice(bestStart + bestLen);
     const middle = bestStart === 0 && bestStart + bestLen === 8 ? ['', '', ''] :
