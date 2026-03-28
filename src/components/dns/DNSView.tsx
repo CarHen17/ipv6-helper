@@ -122,18 +122,23 @@ export function DNSView() {
               />
             </div>
             {/* Quick examples */}
-            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-              <span className="text-[11px] text-muted-foreground">Exemplos:</span>
-              {EXAMPLES.map(ex => (
-                <button
-                  key={ex}
-                  onClick={() => setHostname(ex)}
-                  className="text-[11px] font-mono text-primary hover:text-primary/80 transition-colors"
-                >
-                  {ex}
-                </button>
-              ))}
-            </div>
+            <details className="group">
+              <summary className="flex items-center gap-1 cursor-pointer list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors w-fit select-none mt-0.5">
+                <span className="transition-transform duration-200 group-open:rotate-90 inline-block">›</span>
+                Exemplos
+              </summary>
+              <div className="flex items-center gap-1.5 flex-wrap pt-1.5">
+                {EXAMPLES.map(ex => (
+                  <button
+                    key={ex}
+                    onClick={() => setHostname(ex)}
+                    className="text-[11px] font-mono text-primary hover:text-primary/80 transition-colors"
+                  >
+                    {ex}
+                  </button>
+                ))}
+              </div>
+            </details>
           </div>
 
           {/* Type + Resolver selectors */}

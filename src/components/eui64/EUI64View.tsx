@@ -172,12 +172,13 @@ export function EUI64View() {
           </div>
 
           {/* Quick fills */}
-          <div>
-            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1 mb-2">
-              <Zap className="w-3 h-3 text-primary/60" />
+          <details className="group">
+            <summary className="flex items-center gap-1 cursor-pointer list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors w-fit select-none">
+              <Zap className="w-3 h-3 text-primary/40" />
+              <span className="transition-transform duration-200 group-open:rotate-90 inline-block">›</span>
               Exemplos rápidos
-            </p>
-            <div className="flex flex-wrap gap-2">
+            </summary>
+            <div className="flex flex-wrap gap-2 pt-2">
               {[
                 { mac: '00:1A:2B:3C:4D:5E', prefix: '2001:db8::', label: 'Dispositivo genérico' },
                 { mac: 'AA:BB:CC:DD:EE:FF', prefix: '2001:db8::', label: 'MAC multicast' },
@@ -193,7 +194,7 @@ export function EUI64View() {
                 </button>
               ))}
             </div>
-          </div>
+          </details>
 
           {/* Error */}
           <AnimatePresence>

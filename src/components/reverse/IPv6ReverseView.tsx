@@ -92,14 +92,20 @@ export function IPv6ReverseView() {
       {/* Input card */}
       <div className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-4">
         {/* What is this? */}
-        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-secondary/50 text-xs text-muted-foreground">
-          <Info className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
-          <span>
-            O DNS reverso mapeia endereços IP a nomes de domínio. Para IPv6, cada nibble (dígito hex) do endereço
-            expandido é invertido e separado por pontos, formando um nome no domínio <code className="font-mono text-foreground">ip6.arpa</code>.
-            Aceita endereço individual ou bloco CIDR (ex: <code className="font-mono text-foreground">2001:db8::/32</code>).
-          </span>
-        </div>
+        <details className="group">
+          <summary className="flex items-center gap-1.5 cursor-pointer list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors w-fit select-none">
+            <Info className="w-3 h-3 text-primary/60" />
+            <span className="transition-transform duration-200 group-open:rotate-90 inline-block">›</span>
+            O que é DNS reverso IPv6?
+          </summary>
+          <div className="mt-2 flex items-start gap-2.5 p-3 rounded-lg bg-secondary/50 text-xs text-muted-foreground">
+            <span>
+              O DNS reverso mapeia endereços IP a nomes de domínio. Para IPv6, cada nibble (dígito hex) do endereço
+              expandido é invertido e separado por pontos, formando um nome no domínio <code className="font-mono text-foreground">ip6.arpa</code>.
+              Aceita endereço individual ou bloco CIDR (ex: <code className="font-mono text-foreground">2001:db8::/32</code>).
+            </span>
+          </div>
+        </details>
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-foreground">Endereço IPv6 ou bloco CIDR</label>
@@ -117,9 +123,12 @@ export function IPv6ReverseView() {
         </div>
 
         {/* Quick examples */}
-        <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Exemplos rápidos</p>
-          <div className="flex flex-wrap gap-1.5">
+        <details className="group">
+          <summary className="flex items-center gap-1 cursor-pointer list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors w-fit select-none">
+            <span className="transition-transform duration-200 group-open:rotate-90 inline-block">›</span>
+            Exemplos rápidos
+          </summary>
+          <div className="flex flex-wrap gap-1.5 pt-1.5">
             {REVERSE_EXAMPLES.map(ex => (
               <button
                 key={ex.value}
@@ -130,7 +139,7 @@ export function IPv6ReverseView() {
               </button>
             ))}
           </div>
-        </div>
+        </details>
 
         <div className="flex items-center justify-end gap-3 pt-1">
           <Button variant="outline" onClick={handleReset} className="gap-2 h-11 text-sm" disabled={!input && !result}>
@@ -191,17 +200,22 @@ export function IPv6ReverseView() {
           </div>
 
           {/* Explanation */}
-          <div className="rounded-lg bg-secondary/30 p-3.5 space-y-1.5 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground text-[13px]">Como usar</p>
-            <p>
-              <strong>Registro PTR</strong> — aponta o endereço IP completo para um hostname. Configure na zona
-              do seu bloco mais específico (ex: <code className="font-mono text-foreground">{result.zones.at(-1)?.zone ?? 'zona.ip6.arpa'}</code>).
-            </p>
-            <p>
-              <strong>Delegação de zona</strong> — para delegar o DNS reverso de um bloco ao cliente, crie
-              um registro NS apontando o nome da zona correspondente ao prefixo delegado.
-            </p>
-          </div>
+          <details className="bg-card rounded-xl border border-border group">
+            <summary className="px-5 py-3.5 cursor-pointer flex items-center gap-2 text-sm font-medium text-foreground select-none hover:bg-secondary/30 rounded-xl transition-colors list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden">
+              <Info className="w-4 h-4 text-primary" />
+              Como usar
+            </summary>
+            <div className="px-5 pb-4 text-xs text-muted-foreground border-t border-border pt-3 space-y-1.5">
+              <p>
+                <strong>Registro PTR</strong> — aponta o endereço IP completo para um hostname. Configure na zona
+                do seu bloco mais específico (ex: <code className="font-mono text-foreground">{result.zones.at(-1)?.zone ?? 'zona.ip6.arpa'}</code>).
+              </p>
+              <p>
+                <strong>Delegação de zona</strong> — para delegar o DNS reverso de um bloco ao cliente, crie
+                um registro NS apontando o nome da zona correspondente ao prefixo delegado.
+              </p>
+            </div>
+          </details>
         </motion.div>
       )}
     </motion.div>
