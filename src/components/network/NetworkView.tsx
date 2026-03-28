@@ -42,11 +42,10 @@ function RawOutput({ raw }: { raw: string }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
           >
             <pre className="px-4 pb-4 pt-1 text-[11px] font-mono text-muted-foreground whitespace-pre-wrap break-all border-t border-border/60 leading-relaxed">
               {raw}
