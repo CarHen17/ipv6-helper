@@ -193,23 +193,21 @@ export function OverlapView() {
             spellCheck={false}
           />
 
-          <div className="flex flex-col-reverse sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex flex-col-reverse sm:flex-row items-start sm:items-end justify-between gap-3">
             <p className="text-xs text-muted-foreground">
               {blockCount > 0 ? `${blockCount} bloco(s) para analisar` : 'Suporta comentários com # e linhas em branco'}
             </p>
-            <div className="flex gap-3 w-full sm:w-auto">
-              <Button onClick={handleAnalyze} className="gap-2 h-11 px-5 text-sm flex-1 sm:flex-none" disabled={!input.trim()}>
+            <div className="flex flex-col items-end gap-1 w-full sm:w-auto">
+              <Button onClick={handleAnalyze} className="gap-2 h-11 px-5 text-sm w-full sm:w-auto" disabled={!input.trim()}>
                 <Search className="w-4 h-4" /> Analisar
               </Button>
+              {report && (
+                <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
+                  <RefreshCw className="w-3 h-3" /> Limpar
+                </Button>
+              )}
             </div>
           </div>
-          {report && (
-            <div className="flex justify-end">
-              <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
-                <RefreshCw className="w-3 h-3" /> Limpar
-              </Button>
-            </div>
-          )}
         </motion.div>
 
         {/* Results */}

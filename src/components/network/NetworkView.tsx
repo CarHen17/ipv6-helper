@@ -122,19 +122,17 @@ function PingTab() {
             </div>
           </details>
         </div>
-        <div className="flex justify-end">
+        <div className="flex flex-col items-end gap-1">
           <Button onClick={handlePing} disabled={loading || !target.trim()} className="gap-2 h-11 px-5 text-sm">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wifi className="w-4 h-4" />}
             Pingar
           </Button>
-        </div>
-        {(result || error) && (
-          <div className="flex justify-end">
+          {(result || error) && (
             <Button variant="ghost" size="sm" onClick={() => { setTarget(''); setResult(null); setError(''); }} className="gap-1.5 text-xs text-muted-foreground h-8">
               <RefreshCw className="w-3 h-3" /> Limpar
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <AnimatePresence>
@@ -287,19 +285,17 @@ function TracerouteTab() {
             </div>
           </details>
         </div>
-        <div className="flex justify-end">
+        <div className="flex flex-col items-end gap-1">
           <Button onClick={handleTrace} disabled={loading || !target.trim()} className="gap-2 h-11 px-5 text-sm">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
             Rastrear
           </Button>
-        </div>
-        {(result || error) && (
-          <div className="flex justify-end">
+          {(result || error) && (
             <Button variant="ghost" size="sm" onClick={() => { setTarget(''); setResult(null); setError(''); }} className="gap-1.5 text-xs text-muted-foreground h-8">
               <RefreshCw className="w-3 h-3" /> Limpar
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <AnimatePresence>

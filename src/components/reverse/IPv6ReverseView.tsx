@@ -141,18 +141,16 @@ export function IPv6ReverseView() {
           </div>
         </details>
 
-        <div className="flex items-center justify-end pt-1">
+        <div className="flex flex-col items-end gap-1 pt-1">
           <Button onClick={handleConvert} className="gap-2 h-11 px-5 text-sm" disabled={!input.trim()}>
             <ArrowLeftRight className="w-4 h-4" /> Converter
           </Button>
-        </div>
-        {result && (
-          <div className="flex justify-end">
+          {result && (
             <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
               <RefreshCw className="w-3 h-3" /> Limpar
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Results */}
