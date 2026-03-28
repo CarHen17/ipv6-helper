@@ -196,7 +196,7 @@ export function ReverseIPLookupView() {
                           <span className="text-muted-foreground/60 italic">Sem registro PTR</span>
                         )}
                         {ptrResult && (
-                          <p className="text-[11px] text-muted-foreground/50 font-mono mt-0.5">{ptrResult.ptrName}</p>
+                          <p className="text-[11px] text-muted-foreground/50 font-mono mt-0.5 break-all">{ptrResult.ptrName}</p>
                         )}
                       </td>
                     </tr>
@@ -206,8 +206,8 @@ export function ReverseIPLookupView() {
                       <tr className="hover:bg-secondary/20 transition-colors">
                         <td className="px-5 py-3 font-medium text-foreground align-top">Localização</td>
                         <td className="px-5 py-3">
-                          <p className="flex items-center gap-1.5 text-foreground">
-                            <span>{countryFlag(geo.country ?? '')}</span>
+                          <p className="flex items-center gap-2 text-foreground">
+                            <span className="text-base leading-none">{countryFlag(geo.country ?? '')}</span>
                             <span>{[geo.city, geo.region, geo.countryName].filter(Boolean).join(', ')}</span>
                           </p>
                           {geo.org && <p className="text-xs text-muted-foreground mt-0.5">{geo.org}</p>}
