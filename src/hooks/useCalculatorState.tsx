@@ -406,7 +406,7 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   const generateMainBlockIps = useCallback(() => {
     if (!state.mainBlock) return;
     mainBlockIpOffsetRef.current = 0;
-    const ips = generateIPs(state.mainBlock.network, 0, 50);
+    const ips = generateIPs(state.mainBlock.network, 0, 50, state.mainBlock.prefix);
     mainBlockIpOffsetRef.current = 50;
     setState(s => ({ ...s, mainBlockIps: ips, mainBlockIpsVisible: true }));
   }, [state.mainBlock]);
@@ -414,7 +414,7 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   const generateMoreMainBlockIps = useCallback(() => {
     if (!state.mainBlock) return;
     const offset = mainBlockIpOffsetRef.current;
-    const newIps = generateIPs(state.mainBlock.network, offset, 50);
+    const newIps = generateIPs(state.mainBlock.network, offset, 50, state.mainBlock.prefix);
     mainBlockIpOffsetRef.current = offset + 50;
     setState(s => ({ ...s, mainBlockIps: [...s.mainBlockIps, ...newIps] }));
   }, [state.mainBlock]);
@@ -431,7 +431,7 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
       } else {
         if (s.mainBlockIps.length === 0 && s.mainBlock) {
           mainBlockIpOffsetRef.current = 0;
-          const ips = generateIPs(s.mainBlock.network, 0, 50);
+          const ips = generateIPs(s.mainBlock.network, 0, 50, s.mainBlock.prefix);
           mainBlockIpOffsetRef.current = 50;
           return { ...s, mainBlockIps: ips, mainBlockIpsVisible: true };
         }
@@ -446,7 +446,8 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
     const subnet = state.subRedesGeradas[indices[0]];
     if (!subnet) return;
     subnetIpOffsetRef.current = 0;
-    const ips = generateIPs(subnet.network, 0, 50);
+    const subnetPrefix = parseInt(subnet.subnet.split('/')[1] ?? '128', 10);
+    const ips = generateIPs(subnet.network, 0, 50, subnetPrefix);
     subnetIpOffsetRef.current = 50;
     setState(s => ({ ...s, subnetIps: ips, subnetIpsVisible: true, subnetIpsBlock: subnet }));
   }, [state.selectedIndices, state.subRedesGeradas]);
@@ -454,7 +455,8 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   const generateMoreSubnetIps = useCallback(() => {
     if (!state.subnetIpsBlock) return;
     const offset = subnetIpOffsetRef.current;
-    const newIps = generateIPs(state.subnetIpsBlock.network, offset, 50);
+    const subnetPrefix = parseInt(state.subnetIpsBlock.subnet.split('/')[1] ?? '128', 10);
+    const newIps = generateIPs(state.subnetIpsBlock.network, offset, 50, subnetPrefix);
     subnetIpOffsetRef.current = offset + 50;
     setState(s => ({ ...s, subnetIps: [...s.subnetIps, ...newIps] }));
   }, [state.subnetIpsBlock]);
@@ -471,7 +473,7 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
       }
       if (s.aggregatedIps.length === 0 && s.aggregationResult?.aggregatedBlock) {
         aggregatedIpOffsetRef.current = 0;
-        const ips = generateIPs(s.aggregationResult.aggregatedBlock.network, 0, 50);
+        const ips = generateIPs(s.aggregationResult.aggregatedBlock.network, 0, 50, s.aggregationResult.aggregatedBlock.prefix);
         aggregatedIpOffsetRef.current = 50;
         return { ...s, aggregatedIps: ips, aggregatedIpsVisible: true };
       }
@@ -482,7 +484,7 @@ export function CalculatorProvider({ children }: { children: React.ReactNode }) 
   const generateMoreAggregatedIps = useCallback(() => {
     if (!state.aggregationResult?.aggregatedBlock) return;
     const offset = aggregatedIpOffsetRef.current;
-    const newIps = generateIPs(state.aggregationResult.aggregatedBlock.network, offset, 50);
+    const newIps = generateIPs(state.aggregationResult.aggregatedBlock.network, offset, 50, state.aggregationResult.aggregatedBlock.prefix);
     aggregatedIpOffsetRef.current = offset + 50;
     setState(s => ({ ...s, aggregatedIps: [...s.aggregatedIps, ...newIps] }));
   }, [state.aggregationResult]);

@@ -464,14 +464,25 @@ export async function generateSubnets(
 /**
  * Generate IPs from a network address
  */
-export function generateIPs(networkAddress: string, offset: number, count: number): { ip: string; number: number }[] {
+export function generateIPs(networkAddress: string, offset: number, count: number, prefixLength?: number): { ip: string; number: number }[] {
   const redeCompleta = expandIPv6Address(networkAddress.includes('/') ? networkAddress : networkAddress + '/128');
   const cleanAddr = redeCompleta.startsWith('Erro') ? networkAddress : redeCompleta;
   const redeHex = cleanAddr.replace(/:/g, '');
   const redeBigInt = BigInt("0x" + redeHex);
 
+  // Clamp count to addresses actually inside the network
+  let effectiveCount = count;
+  if (prefixLength !== undefined && prefixLength >= 0 && prefixLength <= 128) {
+    const networkSize = 1n << BigInt(128 - prefixLength);
+    const available = networkSize - BigInt(offset);
+    if (available <= 0n) return [];
+    if (BigInt(count) > available) {
+      effectiveCount = available > BigInt(Number.MAX_SAFE_INTEGER) ? count : Number(available);
+    }
+  }
+
   const ips: { ip: string; number: number }[] = [];
-  for (let i = offset; i < offset + count; i++) {
+  for (let i = offset; i < offset + effectiveCount; i++) {
     const ipBigInt = redeBigInt + BigInt(i);
     const ipFormatado = formatIPv6Address(ipBigInt);
     ips.push({ ip: shortenIPv6(ipFormatado), number: i + 1 });
