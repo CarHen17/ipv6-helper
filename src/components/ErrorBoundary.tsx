@@ -12,6 +12,17 @@ interface State {
   isChunkError: boolean;
 }
 
+/** Query param added to the URL before a chunk-error reload, so we don't loop. */
+const CHUNK_RELOAD_PARAM = '_crld';
+
+function alreadyReloaded(): boolean {
+  try {
+    return new URL(window.location.href).searchParams.has(CHUNK_RELOAD_PARAM);
+  } catch {
+    return false;
+  }
+}
+
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
@@ -19,11 +30,13 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    const isChunkError =
+    const isChunk =
       error.name === 'ChunkLoadError' ||
       /loading chunk/i.test(error.message) ||
       /failed to fetch dynamically imported module/i.test(error.message);
-    return { hasError: true, error, isChunkError };
+
+    // If we've already tried a reload, don't loop — just show the error UI
+    return { hasError: true, error, isChunkError: isChunk && !alreadyReloaded() };
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
@@ -31,14 +44,21 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidUpdate(_: Props, prev: State) {
-    // Auto-reload once when a chunk fails to load (stale deployment hash)
     if (this.state.isChunkError && !prev.isChunkError) {
-      window.location.reload();
+      // Use a cache-busting URL so the browser fetches a fresh index.html,
+      // bypassing any CDN/browser cache that still has the old chunk hashes.
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set(CHUNK_RELOAD_PARAM, '1');
+        window.location.replace(url.toString());
+      } catch {
+        window.location.reload();
+      }
     }
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, isChunkError: false });
   };
 
   render() {
@@ -70,5 +90,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
     }
 
     return this.props.children;
+  }
+}
+
+/** Call once at app startup to strip the chunk-reload marker from the URL. */
+export function cleanChunkReloadParam() {
+  try {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(CHUNK_RELOAD_PARAM)) {
+      url.searchParams.delete(CHUNK_RELOAD_PARAM);
+      window.history.replaceState(null, '', url.toString());
+    }
+  } catch {
+    // ignore
   }
 }
