@@ -92,17 +92,23 @@ export function IPv4to6View() {
           </div>
 
           {/* Quick examples */}
-          <div className="flex flex-wrap gap-1.5">
-            {EXAMPLES.map(ex => (
-              <button
-                key={ex}
-                onClick={() => { setInput(ex); setError(null); }}
-                className="text-[11px] font-mono px-2.5 py-1 rounded border border-border/60 bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
-              >
-                {ex}
-              </button>
-            ))}
-          </div>
+          <details className="group">
+            <summary className="flex items-center gap-1 cursor-pointer list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors w-fit select-none">
+              <span className="transition-transform duration-200 group-open:rotate-90 inline-block">›</span>
+              Exemplos
+            </summary>
+            <div className="flex flex-wrap gap-1.5 pt-1.5">
+              {EXAMPLES.map(ex => (
+                <button
+                  key={ex}
+                  onClick={() => { setInput(ex); setError(null); }}
+                  className="text-[11px] font-mono px-2.5 py-1 rounded border border-border/60 bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </details>
 
           {results.length > 0 && (
             <div className="flex justify-end">
@@ -147,18 +153,18 @@ export function IPv4to6View() {
 
         {/* Info box */}
         {results.length === 0 && !error && (
-          <div className="bg-secondary/30 rounded-xl border border-border/40 p-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-primary shrink-0" />
-              <p className="text-sm font-medium text-foreground">Mecanismos de transição IPv4/IPv6</p>
-            </div>
-            <div className="space-y-2.5 text-xs text-muted-foreground">
+          <details className="bg-card rounded-xl border border-border group">
+            <summary className="px-5 py-3.5 cursor-pointer flex items-center gap-2 text-sm font-medium text-foreground select-none hover:bg-secondary/30 rounded-xl transition-colors list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden">
+              <Info className="w-4 h-4 text-primary" />
+              Mecanismos de transição IPv4/IPv6
+            </summary>
+            <div className="px-5 pb-4 text-xs text-muted-foreground border-t border-border pt-3 space-y-2.5">
               <p><span className="font-mono text-primary">IPv4-Mapped</span> — Representa um IPv4 em socket dual-stack. Formato: <span className="font-mono">::ffff:x.x.x.x</span></p>
               <p><span className="font-mono text-primary">NAT64</span> — Gateway traduz entre clientes IPv6 e servidores IPv4. Prefixo <span className="font-mono">64:ff9b::/96</span> (RFC 6052)</p>
               <p><span className="font-mono text-primary">6to4</span> — Tunelamento automático, deriva prefixo <span className="font-mono">/48</span> do IPv4 público. Prefixo <span className="font-mono">2002::/16</span> (RFC 3056)</p>
               <p><span className="font-mono text-primary">IPv4-Compatible</span> — Formato obsoleto, mantido apenas por referência histórica.</p>
             </div>
-          </div>
+          </details>
         )}
       </div>
     </motion.div>

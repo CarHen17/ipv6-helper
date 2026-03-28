@@ -108,15 +108,20 @@ function PingTab() {
             className="font-mono text-sm bg-secondary/60 border-border/60 h-11"
             spellCheck={false}
           />
-          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-            <span className="text-[11px] text-muted-foreground">Exemplos:</span>
-            {PING_EXAMPLES.map(ex => (
-              <button key={ex} onClick={() => setTarget(ex)}
-                className="text-[11px] font-mono text-primary hover:text-primary/80 transition-colors">
-                {ex}
-              </button>
-            ))}
-          </div>
+          <details className="group">
+            <summary className="flex items-center gap-1 cursor-pointer list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors w-fit select-none mt-0.5">
+              <span className="transition-transform duration-200 group-open:rotate-90 inline-block">›</span>
+              Exemplos
+            </summary>
+            <div className="flex items-center gap-1.5 flex-wrap pt-1.5">
+              {PING_EXAMPLES.map(ex => (
+                <button key={ex} onClick={() => setTarget(ex)}
+                  className="text-[11px] font-mono text-primary hover:text-primary/80 transition-colors">
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </details>
         </div>
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={() => { setTarget(''); setResult(null); setError(''); }}
@@ -265,15 +270,20 @@ function TracerouteTab() {
             className="font-mono text-sm bg-secondary/60 border-border/60 h-11"
             spellCheck={false}
           />
-          <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-            <span className="text-[11px] text-muted-foreground">Exemplos:</span>
-            {TRACERT_EXAMPLES.map(ex => (
-              <button key={ex} onClick={() => setTarget(ex)}
-                className="text-[11px] font-mono text-primary hover:text-primary/80 transition-colors">
-                {ex}
-              </button>
-            ))}
-          </div>
+          <details className="group">
+            <summary className="flex items-center gap-1 cursor-pointer list-none [&::-webkit-details-marker]:hidden [&::marker]:hidden text-[11px] text-muted-foreground/60 hover:text-muted-foreground transition-colors w-fit select-none mt-0.5">
+              <span className="transition-transform duration-200 group-open:rotate-90 inline-block">›</span>
+              Exemplos
+            </summary>
+            <div className="flex items-center gap-1.5 flex-wrap pt-1.5">
+              {TRACERT_EXAMPLES.map(ex => (
+                <button key={ex} onClick={() => setTarget(ex)}
+                  className="text-[11px] font-mono text-primary hover:text-primary/80 transition-colors">
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </details>
         </div>
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={() => { setTarget(''); setResult(null); setError(''); }}
