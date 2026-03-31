@@ -1,73 +1,58 @@
-# Welcome to your Lovable project
+# IPv6 Helper
 
-## Project info
+Uma ferramenta web completa para administração e planejamento de redes IPv6.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Funcionalidades
 
-## How can I edit this code?
+- **Calculadora de Sub-redes** — Divide blocos IPv6 em sub-redes, com exportação em CSV, Excel, TXT e JSON
+- **DNS Lookup** — Resolução de nomes DNS para endereços IPv6
+- **Teste de Rede (Ping)** — Verifica a conectividade IPv6
+- **Verificador de Prontidão IPv6** — Testa se sistemas e redes estão prontos para IPv6
+- **Conversão IPv4 → IPv6** — Converte endereços entre os dois protocolos
+- **Zona PTR (DNS Reverso)** — Gera arquivos de zona reversa para IPv6
+- **Domínios no IP** — Lookup reverso de IP para domínios
+- **Detecção de Sobreposição** — Identifica sub-redes IPv6 sobrepostas
+- **Planejador de Redes** — Auxilia no design e alocação de espaços de endereçamento IPv6
+- **EUI-64 / SLAAC** — Gera endereços IPv6 a partir de endereços MAC
+- **Histórico** — Mantém registro das operações realizadas
 
-There are several ways of editing your application.
+## Tecnologias
 
-**Use Lovable**
+- [React](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [shadcn/ui](https://ui.shadcn.com/)
+- [React Router](https://reactrouter.com/)
+- [TanStack Query](https://tanstack.com/query)
+- [Framer Motion](https://www.framer.com/motion/)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Como executar localmente
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+Requisito: [Node.js](https://nodejs.org/) instalado.
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# 1. Clone o repositório
+git clone https://github.com/CarHen17/ipv6-helper.git
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# 2. Acesse o diretório
+cd ipv6-helper
 
-# Step 3: Install the necessary dependencies.
-npm i
+# 3. Instale as dependências
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 4. Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+O app estará disponível em `http://localhost:5173`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Scripts disponíveis
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm run build` | Gera o build de produção |
+| `npm run preview` | Pré-visualiza o build de produção |
+| `npm run lint` | Executa o linter |
+| `npm run test` | Executa os testes unitários |
+| `npm run test:e2e` | Executa os testes E2E com Playwright |
