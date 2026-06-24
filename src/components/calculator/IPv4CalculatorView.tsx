@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Copy, Download, ChevronDown, X,
+  Calculator, Copy, Download, ChevronDown, X,
   List, Plus, RotateCcw, Info, FileText, FileSpreadsheet,
   FileCode, Search, Shield, ShieldOff,
 } from 'lucide-react';
