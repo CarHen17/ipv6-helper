@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useCalculator, type HistoryEntry } from '@/hooks/useCalculatorState';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, RotateCcw, Trash2 } from 'lucide-react';
@@ -5,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { loadIPv4History, saveIPv4History, type IPv4HistoryEntry } from '@/lib/ipv4-history';
+import { cn } from '@/lib/utils';
 
 const pageTransition = {
   initial: { opacity: 0, y: 16 },
@@ -26,81 +28,151 @@ function getRelativeTime(timestamp: number): string {
 }
 
 export function HistoryView() {
-  const { history, clearHistory, restoreFromHistory } = useCalculator();
+  const { history: ipv6History, clearHistory: clearIPv6History, restoreFromHistory } = useCalculator();
   const navigate = useNavigate();
+  const [tab, setTab] = useState<'ipv6' | 'ipv4'>('ipv6');
+  const [ipv4History, setIPv4History] = useState<IPv4HistoryEntry[]>(loadIPv4History);
   const [confirmClear, setConfirmClear] = useState(false);
 
-  const restoreEntry = (entry: HistoryEntry) => {
+  const activeHistory = tab === 'ipv6' ? ipv6History : ipv4History;
+
+  const restoreIPv6 = (entry: HistoryEntry) => {
     restoreFromHistory(entry);
     navigate('/');
     toast.success('Cálculo restaurado');
   };
 
+  const restoreIPv4 = (entry: IPv4HistoryEntry) => {
+    navigate('/', { state: { ...entry, _restoreMode: 'ipv4' } });
+    toast.success('Cálculo restaurado');
+  };
+
+  const handleClear = () => {
+    if (tab === 'ipv6') {
+      clearIPv6History();
+    } else {
+      saveIPv4History([]);
+      setIPv4History([]);
+    }
+    setConfirmClear(false);
+    toast.info('Histórico apagado');
+  };
+
   return (
     <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...pageTransition}>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-start justify-between mb-8">
         <div>
           <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
             <Clock className="w-5 h-5 text-primary" /> Histórico
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Cálculos recentes · clique para restaurar</p>
         </div>
-        {history.length > 0 && (
-          <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive" onClick={() => setConfirmClear(true)}>
+        {activeHistory.length > 0 && (
+          <Button variant="outline" size="sm" className="gap-2 text-destructive hover:text-destructive mt-1 shrink-0" onClick={() => setConfirmClear(true)}>
             <Trash2 className="w-3.5 h-3.5" /> Limpar
           </Button>
         )}
       </div>
 
-      {history.length === 0 ? (
-        <div className="bg-card rounded-xl border border-border p-12 text-center">
-          <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
-          <p className="text-xs text-muted-foreground">Nenhum cálculo no histórico ainda.</p>
-          <p className="text-[11px] text-muted-foreground/60 mt-1.5">Os cálculos aparecem aqui automaticamente.</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          <AnimatePresence>
-            {history.map((entry, i) => (
-              <motion.div
-                key={entry.timestamp}
-                initial={{ opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.25 }}
-                onClick={() => restoreEntry(entry)}
-                className="bg-card rounded-xl border border-border/60 p-4 cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 group flex items-center justify-between"
-              >
-                <div>
-                  <code className="text-xs font-semibold text-primary font-mono">{entry.block}</code>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    → /{entry.prefix}
-                    {entry.subnetCount > 0 && `, ${entry.subnetCount.toLocaleString('pt-BR')} sub-redes`}
-                    {' · '}{getRelativeTime(entry.timestamp)}
-                  </p>
-                </div>
-                <RotateCcw className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-      )}
+      {/* Tab toggle */}
+      <div className="inline-flex items-center bg-secondary/60 rounded-full p-1 gap-1 mb-6">
+        {(['ipv6', 'ipv4'] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cn(
+              'px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
+              tab === t
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {t === 'ipv6' ? 'IPv6' : 'IPv4'}
+            <span className={cn(
+              'text-[10px] font-semibold px-1.5 py-0.5 rounded-full',
+              tab === t ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-muted-foreground'
+            )}>
+              {t === 'ipv6' ? '128-bit' : '32-bit'}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={tab}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeHistory.length === 0 ? (
+            <div className="bg-card rounded-xl border border-border p-12 text-center">
+              <Clock className="w-8 h-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-xs text-muted-foreground">Nenhum cálculo no histórico ainda.</p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1.5">Os cálculos aparecem aqui automaticamente.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {tab === 'ipv6'
+                ? (ipv6History as HistoryEntry[]).map((entry, i) => (
+                    <motion.div
+                      key={entry.timestamp}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.25 }}
+                      onClick={() => restoreIPv6(entry)}
+                      className="bg-card rounded-xl border border-border/60 p-4 cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 group flex items-center justify-between"
+                    >
+                      <div>
+                        <code className="text-xs font-semibold text-primary font-mono">{entry.block}</code>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          → /{entry.prefix}
+                          {entry.subnetCount > 0 && `, ${entry.subnetCount.toLocaleString('pt-BR')} sub-redes`}
+                          {' · '}{getRelativeTime(entry.timestamp)}
+                        </p>
+                      </div>
+                      <RotateCcw className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.div>
+                  ))
+                : (ipv4History as IPv4HistoryEntry[]).map((entry, i) => (
+                    <motion.div
+                      key={entry.timestamp}
+                      initial={{ opacity: 0, x: -16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04, duration: 0.25 }}
+                      onClick={() => restoreIPv4(entry)}
+                      className="bg-card rounded-xl border border-border/60 p-4 cursor-pointer hover:border-primary/30 hover:bg-primary/5 transition-all duration-200 group flex items-center justify-between"
+                    >
+                      <div>
+                        <code className="text-xs font-semibold text-primary font-mono">{entry.cidr}</code>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          → /{entry.subnetPrefix}
+                          {entry.count > 0 && `, ${entry.count.toLocaleString('pt-BR')} sub-redes`}
+                          {' · '}{getRelativeTime(entry.timestamp)}
+                        </p>
+                      </div>
+                      <RotateCcw className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </motion.div>
+                  ))
+              }
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
       {/* Confirm clear dialog */}
       <Dialog open={confirmClear} onOpenChange={setConfirmClear}>
         <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-sm">Apagar histórico?</DialogTitle>
+            <DialogTitle className="text-sm">Apagar histórico {tab.toUpperCase()}?</DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground">Todos os {history.length} registros serão removidos permanentemente.</p>
+          <p className="text-xs text-muted-foreground">Todos os {activeHistory.length} registros serão removidos permanentemente.</p>
           <div className="flex gap-2 pt-2">
             <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => setConfirmClear(false)}>
               Cancelar
             </Button>
-            <Button variant="destructive" size="sm" className="flex-1 text-xs h-8" onClick={() => {
-              clearHistory();
-              setConfirmClear(false);
-              toast.info('Histórico apagado');
-            }}>
+            <Button variant="destructive" size="sm" className="flex-1 text-xs h-8" onClick={handleClear}>
               Apagar tudo
             </Button>
           </div>
