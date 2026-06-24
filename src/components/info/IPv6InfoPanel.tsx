@@ -2,11 +2,10 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 import {
   Globe, Shield, MapPin, Server, Clock, Users, ExternalLink,
-  Loader2, AlertTriangle, CheckCircle, XCircle, Info, RefreshCw, Minimize2, Maximize2, Copy,
+  Loader2, AlertTriangle, CheckCircle, XCircle, Info, Copy, Check,
+  Minimize2, Maximize2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -26,22 +25,33 @@ interface IPv6InfoPanelProps {
   ipv6Address: string;
 }
 
+function useCopy() {
+  const [copied, setCopied] = useState(false);
+  const copy = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      toast.success('Copiado!');
+      setTimeout(() => setCopied(false), 1500);
+    }, () => toast.error('Falha ao copiar'));
+  };
+  return { copied, copy };
+}
+
 export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanelProps) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<IPv6LookupResult | null>(null);
   const [ping6Result, setPing6Result] = useState<Ping6ValidateResult | null>(null);
   const [geoInfo, setGeoInfo] = useState<GeoInfo | null>(null);
+  const { copied, copy } = useCopy();
 
   useEffect(() => {
     if (!open || !ipv6Address) return;
-
     setLoading(true);
     setResult(null);
     setPing6Result(null);
     setGeoInfo(null);
 
     const addrOnly = ipv6Address.split('/')[0];
-
     Promise.all([
       fullIPv6Lookup(ipv6Address).catch((): IPv6LookupResult => ({
         input: ipv6Address,
@@ -60,202 +70,6 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
 
   const typeInfo = result?.typeInfo || classifyIPv6(ipv6Address);
 
-  return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto bg-card border-border">
-        <SheetHeader className="pb-4">
-          <SheetTitle className="text-base font-semibold flex items-center gap-2">
-            <Info className="w-4 h-4 text-primary" />
-            Informações do Bloco IPv6
-          </SheetTitle>
-        </SheetHeader>
-
-        <div className="space-y-4">
-          {/* Address display */}
-          <div className="bg-secondary/50 rounded-lg p-3.5">
-            <code className="text-sm font-mono text-primary break-all">{ipv6Address}</code>
-          </div>
-
-          {/* Block Validation */}
-          {result?.validation && (
-            <BlockValidationCard validation={result.validation} />
-          )}
-
-          {/* Type Classification - always shown */}
-          <TypeClassificationCard typeInfo={typeInfo} />
-
-          {/* Ping6 Validate */}
-          <AnimatePresence>
-            {ping6Result && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <Ping6ValidateCard result={ping6Result} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Loading */}
-          {loading && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center justify-center gap-2 py-8 text-muted-foreground"
-            >
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-sm">Consultando informações de rede...</span>
-            </motion.div>
-          )}
-
-          {/* Geolocation */}
-          <AnimatePresence>
-            {geoInfo && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <GeoCard geo={geoInfo} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* BGP Info */}
-          <AnimatePresence>
-            {result?.bgpInfo && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <BGPInfoCard bgpInfo={result.bgpInfo} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* RDAP Info */}
-          <AnimatePresence>
-            {result?.rdapInfo && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                <RDAPInfoCard rdapInfo={result.rdapInfo} />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* No network data message */}
-          {!loading && result && !result.bgpInfo && !result.rdapInfo && typeInfo.routable && typeInfo.type !== 'Documentação' && (
-            <div className="bg-secondary/30 rounded-lg p-4 text-center">
-              <AlertTriangle className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">
-                Não foi possível obter informações de rede para este bloco.
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                O endereço pode não estar anunciado ou o limite da API foi atingido.
-              </p>
-            </div>
-          )}
-
-          {/* Not routable info */}
-          {!loading && !typeInfo.routable && (
-            <div className="bg-secondary/30 rounded-lg p-4">
-              <div className="flex items-start gap-2">
-                <Shield className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Endereço não roteável</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Este tipo de endereço não é roteado na Internet pública, portanto informações de BGP/RDAP não estão disponíveis.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* External links */}
-          {typeInfo.routable && typeInfo.type !== 'Documentação' && (
-            <div className="pt-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Links externos</p>
-              <div className="flex flex-wrap gap-1.5">
-                <a
-                  href={`https://bgp.tools/prefix/${ipv6Address}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
-                >
-                  <ExternalLink className="w-3 h-3" /> bgp.tools
-                </a>
-                <a
-                  href={`https://hackertarget.com/as-ip-lookup/?q=${encodeURIComponent(ipv6Address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
-                >
-                  <ExternalLink className="w-3 h-3" /> HackerTarget
-                </a>
-                <a
-                  href={`https://who.is/whois/${encodeURIComponent(ipv6Address)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
-                >
-                  <ExternalLink className="w-3 h-3" /> WHOIS
-                </a>
-              </div>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-function BlockValidationCard({ validation }: { validation: BlockValidation }) {
-  const hasMismatch = validation.prefixMismatch && validation.announcedPrefix;
-
-  return (
-    <div className={cn(
-      "rounded-xl border overflow-hidden",
-      validation.isAligned && !hasMismatch
-        ? "bg-emerald-500/5 border-emerald-500/20"
-        : "bg-destructive/5 border-destructive/20"
-    )}>
-      <div className={cn(
-        "px-3 py-2 border-b",
-        validation.isAligned && !hasMismatch ? "border-emerald-500/20" : "border-destructive/20"
-      )}>
-        <h3 className="text-sm font-medium flex items-center gap-1.5">
-          {validation.isAligned && !hasMismatch
-            ? <CheckCircle className="w-4 h-4 text-emerald-400" />
-            : <AlertTriangle className="w-4 h-4 text-destructive" />
-          }
-          Validação do Bloco
-        </h3>
-      </div>
-      <div className="p-3.5 space-y-2.5">
-        <p className="text-sm text-muted-foreground leading-relaxed">{validation.message}</p>
-
-        {!validation.isAligned && validation.networkAddress && (
-          <div className="bg-secondary/40 rounded-md p-2.5">
-            <span className="text-xs text-muted-foreground block">Endereço de rede correto:</span>
-            <code className="text-sm font-mono text-primary">{validation.networkAddress}</code>
-          </div>
-        )}
-
-        {hasMismatch && (
-          <div className="bg-destructive/10 border border-destructive/20 rounded-md p-2.5 space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-destructive shrink-0" />
-              <span className="text-xs font-medium text-destructive">
-                Prefixo diverge do BGP
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              {validation.prefixMismatchType === 'shorter'
-                ? `Você digitou /${validation.prefix}, mas o BGP anuncia este espaço de endereçamento como /${validation.announcedPrefixLen} — um bloco maior. O prefixo /${validation.prefix} não existe como rota independente na tabela BGP global.`
-                : `Você digitou /${validation.prefix}, mas o BGP anuncia um bloco mais específico como /${validation.announcedPrefixLen}. O prefixo que você digitou engloba mais espaço do que o anunciado.`
-              }
-            </p>
-            <div>
-              <span className="text-xs text-muted-foreground block">Prefixo anunciado no BGP:</span>
-              <code className="text-sm font-mono text-primary">{validation.announcedPrefix}</code>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function TypeClassificationCard({ typeInfo }: { typeInfo: IPv6TypeInfo }) {
   const colorMap: Record<string, string> = {
     primary: 'bg-primary/10 text-primary border-primary/20',
     green: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -266,251 +80,307 @@ function TypeClassificationCard({ typeInfo }: { typeInfo: IPv6TypeInfo }) {
     blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     muted: 'bg-muted/50 text-muted-foreground border-border',
   };
-
   const badgeColor = colorMap[typeInfo.color] || colorMap.muted;
 
   return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <div className="px-3.5 py-2.5 border-b border-border/60">
-        <h3 className="text-sm font-medium flex items-center gap-1.5">
-          <Globe className="w-4 h-4 text-primary" /> Classificação
-        </h3>
-      </div>
-      <div className="p-3.5 space-y-3">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className={cn('text-xs px-2.5 py-0.5', badgeColor)}>
-            {typeInfo.type}
-          </Badge>
-          <Badge variant="outline" className="text-xs px-2.5 py-0.5">
-            {typeInfo.rfc}
-          </Badge>
-        </div>
-        <p className="text-sm text-muted-foreground leading-relaxed">{typeInfo.description}</p>
-        <div className="grid grid-cols-2 gap-2">
-          <InfoRow icon={MapPin} label="Escopo" value={typeInfo.scope} />
-          <InfoRow
-            icon={typeInfo.routable ? CheckCircle : XCircle}
-            label="Roteável"
-            value={typeInfo.routable ? 'Sim' : 'Não'}
-            valueClass={typeInfo.routable ? 'text-emerald-400' : 'text-red-400'}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-md overflow-y-auto bg-background border-border flex flex-col gap-0 p-0">
+        {/* Header */}
+        <SheetHeader className="px-5 pt-5 pb-4 border-b border-border/60">
+          <SheetTitle className="text-sm font-semibold flex items-center gap-2 text-foreground">
+            <Info className="w-4 h-4 text-primary" />
+            Informações do Bloco
+          </SheetTitle>
+          {/* Address */}
+          <div className="flex items-center justify-between gap-2 mt-2 bg-secondary/50 rounded-lg px-3 py-2.5">
+            <code className="text-sm font-mono text-primary break-all leading-snug">{ipv6Address}</code>
+            <button
+              onClick={() => copy(ipv6Address)}
+              className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              title="Copiar"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-primary" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </SheetHeader>
 
-function BGPInfoCard({ bgpInfo }: { bgpInfo: NonNullable<IPv6LookupResult['bgpInfo']> }) {
-  return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <div className="px-3.5 py-2.5 border-b border-border/60">
-        <h3 className="text-sm font-medium flex items-center gap-1.5">
-          <Server className="w-4 h-4 text-primary" /> Informações BGP
-        </h3>
-      </div>
-      <div className="p-3.5 space-y-2.5">
-        {bgpInfo.asn && <InfoRow icon={Server} label="ASN" value={`AS${bgpInfo.asn.replace(/^AS/i, '')}`} mono />}
-        {bgpInfo.asName && <InfoRow icon={Users} label="Organização" value={bgpInfo.asName} />}
-        {bgpInfo.prefix && <InfoRow icon={Globe} label="Prefixo" value={bgpInfo.prefix} mono />}
-        {bgpInfo.country && <InfoRow icon={MapPin} label="País" value={bgpInfo.country} />}
-      </div>
-    </div>
-  );
-}
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
 
-function RDAPInfoCard({ rdapInfo }: { rdapInfo: NonNullable<IPv6LookupResult['rdapInfo']> }) {
-  return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <div className="px-3.5 py-2.5 border-b border-border/60">
-        <h3 className="text-sm font-medium flex items-center gap-1.5">
-          <Shield className="w-4 h-4 text-primary" /> Registro RDAP
-        </h3>
-      </div>
-      <div className="p-3.5 space-y-2.5">
-        {rdapInfo.name && <InfoRow icon={Globe} label="Nome" value={rdapInfo.name} />}
-        {rdapInfo.handle && <InfoRow icon={Server} label="Handle" value={rdapInfo.handle} mono />}
-        {rdapInfo.country && <InfoRow icon={MapPin} label="País" value={rdapInfo.country} />}
-        {rdapInfo.type && <InfoRow icon={Info} label="Tipo" value={rdapInfo.type} />}
-        {rdapInfo.startAddress && rdapInfo.endAddress && (
-          <InfoRow icon={Globe} label="Range" value={`${rdapInfo.startAddress} — ${rdapInfo.endAddress}`} mono />
-        )}
-        {rdapInfo.status && rdapInfo.status.length > 0 && (
-          <div className="flex items-start gap-1.5">
-            <CheckCircle className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
-            <div>
-              <span className="text-xs text-muted-foreground block">Status</span>
-              <div className="flex flex-wrap gap-1 mt-0.5">
-                {rdapInfo.status.map((s, i) => (
-                  <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0">
-                    {s}
-                  </Badge>
-                ))}
+          {/* Classification */}
+          <section>
+            <SectionLabel>Classificação</SectionLabel>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant="outline" className={cn('text-xs px-2.5 py-0.5', badgeColor)}>
+                  {typeInfo.type}
+                </Badge>
+                <Badge variant="outline" className="text-xs px-2.5 py-0.5 text-muted-foreground">
+                  {typeInfo.rfc}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{typeInfo.description}</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                <Field label="Escopo" value={typeInfo.scope} />
+                <Field
+                  label="Roteável"
+                  value={typeInfo.routable ? 'Sim' : 'Não'}
+                  valueClass={typeInfo.routable ? 'text-emerald-400' : 'text-red-400'}
+                />
               </div>
             </div>
+          </section>
+
+          {/* Block Validation */}
+          {result?.validation && (
+            <section>
+              <SectionLabel>Validação</SectionLabel>
+              <BlockValidationBlock validation={result.validation} />
+            </section>
+          )}
+
+          {/* Address forms */}
+          <AnimatePresence>
+            {ping6Result && (
+              <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <SectionLabel>Formas do Endereço</SectionLabel>
+                <AddressFormsBlock result={ping6Result} />
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          {/* Loading */}
+          {loading && (
+            <div className="flex items-center gap-2 py-4 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-sm">Consultando dados de rede...</span>
+            </div>
+          )}
+
+          {/* Geo */}
+          <AnimatePresence>
+            {geoInfo && (
+              <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <SectionLabel>Geolocalização</SectionLabel>
+                <GeoBlock geo={geoInfo} />
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          {/* BGP */}
+          <AnimatePresence>
+            {result?.bgpInfo && (
+              <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <SectionLabel>BGP</SectionLabel>
+                <BGPBlock bgpInfo={result.bgpInfo} />
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          {/* RDAP */}
+          <AnimatePresence>
+            {result?.rdapInfo && (
+              <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <SectionLabel>Registro RDAP</SectionLabel>
+                <RDAPBlock rdapInfo={result.rdapInfo} />
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          {/* No data */}
+          {!loading && result && !result.bgpInfo && !result.rdapInfo && typeInfo.routable && typeInfo.type !== 'Documentação' && (
+            <div className="flex items-start gap-2 text-sm text-muted-foreground py-1">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>Dados de rede não disponíveis para este bloco. O prefixo pode não estar anunciado ou o limite da API foi atingido.</span>
+            </div>
+          )}
+
+          {/* Not routable */}
+          {!loading && !typeInfo.routable && (
+            <div className="flex items-start gap-2 text-sm text-muted-foreground py-1">
+              <Shield className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>Endereço não roteável na Internet pública — informações BGP/RDAP não se aplicam.</span>
+            </div>
+          )}
+
+          {/* External links */}
+          {typeInfo.routable && typeInfo.type !== 'Documentação' && (
+            <section>
+              <SectionLabel>Links externos</SectionLabel>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: 'bgp.tools', href: `https://bgp.tools/prefix/${ipv6Address}` },
+                  { label: 'HackerTarget', href: `https://hackertarget.com/as-ip-lookup/?q=${encodeURIComponent(ipv6Address)}` },
+                  { label: 'WHOIS', href: `https://who.is/whois/${encodeURIComponent(ipv6Address)}` },
+                ].map(({ label, href }) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" /> {label}
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/60 mb-2.5">
+      {children}
+    </p>
+  );
+}
+
+function Field({ label, value, mono, valueClass }: { label: string; value: string; mono?: boolean; valueClass?: string }) {
+  return (
+    <div>
+      <span className="text-[11px] text-muted-foreground/70 block">{label}</span>
+      <span className={cn('text-sm text-foreground font-medium', mono && 'font-mono', valueClass)}>{value}</span>
+    </div>
+  );
+}
+
+function BlockValidationBlock({ validation }: { validation: BlockValidation }) {
+  const ok = validation.isAligned && !validation.prefixMismatch;
+  return (
+    <div className={cn(
+      'rounded-lg px-3.5 py-3 flex items-start gap-2.5',
+      ok ? 'bg-emerald-500/5 border border-emerald-500/20' : 'bg-destructive/5 border border-destructive/20'
+    )}>
+      {ok
+        ? <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+        : <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+      }
+      <div className="space-y-2 min-w-0">
+        <p className="text-sm text-foreground leading-snug">{validation.message}</p>
+        {!validation.isAligned && validation.networkAddress && (
+          <div>
+            <span className="text-[11px] text-muted-foreground">Endereço correto</span>
+            <code className="block text-sm font-mono text-primary mt-0.5">{validation.networkAddress}</code>
           </div>
         )}
-        {rdapInfo.entities && rdapInfo.entities.length > 0 && (
-          <div className="mt-2.5 pt-2.5 border-t border-border/40">
-            <span className="text-xs text-muted-foreground block mb-1.5">Entidades</span>
+        {validation.prefixMismatch && validation.announcedPrefix && (
+          <div>
+            <span className="text-[11px] text-muted-foreground">Prefixo anunciado no BGP</span>
+            <code className="block text-sm font-mono text-primary mt-0.5">{validation.announcedPrefix}</code>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AddressFormsBlock({ result }: { result: Ping6ValidateResult }) {
+  const { copied: c1, copy: copy1 } = useCopy();
+  const { copied: c2, copy: copy2 } = useCopy();
+  return (
+    <div className="space-y-2">
+      <CopyRow label="Comprimido" value={result.compressed} copied={c1} onCopy={() => copy1(result.compressed)} />
+      <CopyRow label="Expandido" value={result.expanded} copied={c2} onCopy={() => copy2(result.expanded)} mono small />
+    </div>
+  );
+}
+
+function CopyRow({ label, value, copied, onCopy, mono = true, small }: {
+  label: string; value: string; copied: boolean; onCopy: () => void; mono?: boolean; small?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 bg-secondary/40 rounded-lg px-3 py-2.5">
+      <div className="min-w-0">
+        <span className="text-[11px] text-muted-foreground/70 block">{label}</span>
+        <code className={cn('font-mono break-all', small ? 'text-[11px] text-muted-foreground' : 'text-sm text-primary')}>{value}</code>
+      </div>
+      <button onClick={onCopy} className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0" title="Copiar">
+        {copied ? <Check className="w-3 h-3 text-primary" /> : <Copy className="w-3 h-3" />}
+      </button>
+    </div>
+  );
+}
+
+function GeoBlock({ geo }: { geo: GeoInfo }) {
+  const flag = countryFlag(geo.country ?? '');
+  const location = [geo.city, geo.region, geo.countryName].filter(Boolean).join(', ');
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+      {location && (
+        <div className="col-span-2">
+          <span className="text-[11px] text-muted-foreground/70 block">Localização</span>
+          <span className="text-sm text-foreground font-medium">{flag} {location}</span>
+        </div>
+      )}
+      {geo.lat !== undefined && geo.lon !== undefined && (
+        <Field label="Coordenadas" value={`${geo.lat.toFixed(4)}, ${geo.lon.toFixed(4)}`} mono />
+      )}
+      {geo.timezone && <Field label="Fuso horário" value={geo.timezone} />}
+      {geo.org && <div className="col-span-2"><Field label="Provedor" value={geo.org} /></div>}
+    </div>
+  );
+}
+
+function BGPBlock({ bgpInfo }: { bgpInfo: NonNullable<IPv6LookupResult['bgpInfo']> }) {
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+      {bgpInfo.asn && <Field label="ASN" value={`AS${bgpInfo.asn.replace(/^AS/i, '')}`} mono />}
+      {bgpInfo.country && <Field label="País" value={bgpInfo.country} />}
+      {bgpInfo.asName && <div className="col-span-2"><Field label="Organização" value={bgpInfo.asName} /></div>}
+      {bgpInfo.prefix && <div className="col-span-2"><Field label="Prefixo" value={bgpInfo.prefix} mono /></div>}
+    </div>
+  );
+}
+
+function RDAPBlock({ rdapInfo }: { rdapInfo: NonNullable<IPv6LookupResult['rdapInfo']> }) {
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+        {rdapInfo.name && <div className="col-span-2"><Field label="Nome" value={rdapInfo.name} /></div>}
+        {rdapInfo.handle && <Field label="Handle" value={rdapInfo.handle} mono />}
+        {rdapInfo.country && <Field label="País" value={rdapInfo.country} />}
+        {rdapInfo.type && <Field label="Tipo" value={rdapInfo.type} />}
+      </div>
+      {rdapInfo.status && rdapInfo.status.length > 0 && (
+        <div>
+          <span className="text-[11px] text-muted-foreground/70 block mb-1.5">Status</span>
+          <div className="flex flex-wrap gap-1">
+            {rdapInfo.status.map((s, i) => (
+              <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0">{s}</Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      {rdapInfo.entities && rdapInfo.entities.length > 0 && (
+        <div>
+          <span className="text-[11px] text-muted-foreground/70 block mb-1.5">Entidades</span>
+          <div className="space-y-1">
             {rdapInfo.entities.map((e, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-sm">
-                <Users className="w-3 h-3 text-muted-foreground shrink-0" />
-                <span className="text-foreground">{e.name}</span>
-                {e.roles.length > 0 && (
-                  <span className="text-muted-foreground text-[10px]">({e.roles.join(', ')})</span>
-                )}
+              <div key={i} className="text-sm text-foreground">
+                {e.name}
+                {e.roles.length > 0 && <span className="text-muted-foreground text-[11px] ml-1.5">({e.roles.join(', ')})</span>}
               </div>
             ))}
           </div>
-        )}
-        {rdapInfo.events && rdapInfo.events.length > 0 && (
-          <div className="mt-2.5 pt-2.5 border-t border-border/40">
-            <span className="text-xs text-muted-foreground block mb-1.5">Eventos</span>
+        </div>
+      )}
+      {rdapInfo.events && rdapInfo.events.length > 0 && (
+        <div>
+          <span className="text-[11px] text-muted-foreground/70 block mb-1.5">Eventos</span>
+          <div className="space-y-1">
             {rdapInfo.events.map((e, i) => (
-              <div key={i} className="flex items-center gap-1.5 text-xs">
-                <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
-                <span className="text-muted-foreground capitalize">{e.action}:</span>
+              <div key={i} className="flex gap-2 text-xs text-muted-foreground">
+                <span className="capitalize">{e.action}</span>
                 <span className="text-foreground">{new Date(e.date).toLocaleDateString('pt-BR')}</span>
               </div>
             ))}
           </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function Ping6ValidateCard({ result }: { result: Ping6ValidateResult }) {
-  const copyText = (text: string) =>
-    navigator.clipboard.writeText(text).then(
-      () => toast.success('Copiado!'),
-      () => toast.error('Falha ao copiar')
-    );
-
-  return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <div className="px-3.5 py-2.5 border-b border-border/60 flex items-center justify-between">
-        <h3 className="text-sm font-medium flex items-center gap-1.5">
-          <CheckCircle className="w-4 h-4 text-primary" /> Formas do Endereço
-        </h3>
-        <Badge
-          variant="outline"
-          className={cn(
-            'text-[10px] px-2 py-0',
-            result.valid
-              ? 'border-emerald-500/30 text-emerald-400'
-              : 'border-destructive/30 text-destructive'
-          )}
-        >
-          {result.valid ? 'válido' : 'inválido'}
-        </Badge>
-      </div>
-      <div className="p-3.5 space-y-3">
-        {result.type && (
-          <div className="flex items-center gap-1.5">
-            <Globe className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            <div>
-              <span className="text-xs text-muted-foreground block">Tipo (ping6)</span>
-              <span className="text-sm text-foreground">{result.type}</span>
-            </div>
-          </div>
-        )}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Minimize2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <div className="min-w-0">
-                <span className="text-xs text-muted-foreground block">Comprimido</span>
-                <code className="text-sm font-mono text-primary break-all">{result.compressed}</code>
-              </div>
-            </div>
-            <button
-              onClick={() => copyText(result.compressed)}
-              className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
-              title="Copiar"
-            >
-              <Copy className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <Maximize2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <div className="min-w-0">
-                <span className="text-xs text-muted-foreground block">Expandido</span>
-                <code className="text-[11px] font-mono text-muted-foreground break-all">{result.expanded}</code>
-              </div>
-            </div>
-            <button
-              onClick={() => copyText(result.expanded)}
-              className="p-1 rounded text-muted-foreground hover:text-foreground transition-colors shrink-0"
-              title="Copiar"
-            >
-              <Copy className="w-3 h-3" />
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function GeoCard({ geo }: { geo: GeoInfo }) {
-  const flag = countryFlag(geo.country ?? '');
-  const location = [geo.city, geo.region, geo.countryName].filter(Boolean).join(', ');
-
-  return (
-    <div className="bg-card rounded-xl border border-border overflow-hidden">
-      <div className="px-3.5 py-2.5 border-b border-border/60">
-        <h3 className="text-sm font-medium flex items-center gap-1.5">
-          <MapPin className="w-4 h-4 text-primary" /> Geolocalização
-        </h3>
-      </div>
-      <div className="p-3.5 space-y-2.5">
-        {location && (
-          <div className="flex items-start gap-1.5">
-            <span className="text-base leading-none mt-0.5">{flag}</span>
-            <div>
-              <span className="text-xs text-muted-foreground block">Localização</span>
-              <span className="text-sm text-foreground">{location}</span>
-            </div>
-          </div>
-        )}
-        {geo.lat !== undefined && geo.lon !== undefined && (
-          <InfoRow icon={MapPin} label="Coordenadas" value={`${geo.lat.toFixed(4)}, ${geo.lon.toFixed(4)}`} mono />
-        )}
-        {geo.timezone && (
-          <InfoRow icon={Clock} label="Fuso horário" value={geo.timezone} />
-        )}
-        {geo.org && (
-          <InfoRow icon={Server} label="Provedor" value={geo.org} />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
-  mono,
-  valueClass,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  mono?: boolean;
-  valueClass?: string;
-}) {
-  return (
-    <div className="flex items-start gap-1.5">
-      <Icon className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
-      <div className="min-w-0">
-        <span className="text-xs text-muted-foreground block">{label}</span>
-        <span className={cn('text-sm text-foreground break-all', mono && 'font-mono', valueClass)}>
-          {value}
-        </span>
-      </div>
+      )}
     </div>
   );
 }
