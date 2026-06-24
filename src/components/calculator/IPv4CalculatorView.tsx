@@ -240,7 +240,7 @@ export function IPv4CalculatorView() {
   const prefixOptions = Array.from({ length: 32 - mainPrefix }, (_, i) => mainPrefix + 1 + i);
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-6">
+    <div className={`w-full mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-6 ${step === 3 ? 'max-w-6xl' : 'max-w-4xl'}`}>
       <StepIndicator steps={STEPS} currentStep={step} onStepClick={(s) => {
         if (s < step) {
           if (s === 1) reset();
@@ -435,108 +435,127 @@ export function IPv4CalculatorView() {
 
         {/* ── STEP 3: Subnets ── */}
         {step === 3 && subnets.length > 0 && block && (
-          <motion.div key="step3" {...fadeUp} className="space-y-4">
-            {/* Summary bar */}
-            <div className="rounded-xl border border-border bg-card p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-4 flex-wrap">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Bloco</p>
-                    <p className="text-sm font-mono font-semibold">{blockCidr}</p>
+          <motion.div key="step3" {...fadeUp}>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6">
+              {/* Left: search + table */}
+              <div className="space-y-3">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={searchQuery}
+                    onChange={e => { setSearchQuery(e.target.value); setDisplayedCount(LOAD_BATCH); }}
+                    placeholder="Buscar por rede, broadcast, host..."
+                    className="pl-9 font-mono text-sm"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Table */}
+                <div className="rounded-xl border border-border bg-card overflow-hidden">
+                  <div className="overflow-x-auto max-h-[520px] overflow-y-auto">
+                    <table className="w-full text-xs">
+                      <thead className="sticky top-0 bg-muted/80 backdrop-blur-sm z-10">
+                        <tr className="border-b border-border">
+                          <th className="text-left px-3 py-2.5 font-medium text-muted-foreground w-12">#</th>
+                          <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Sub-rede</th>
+                          <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Broadcast</th>
+                          <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Primeiro Host</th>
+                          <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Último Host</th>
+                          <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden lg:table-cell">Hosts</th>
+                          <th className="px-3 py-2.5 w-8" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {displayed.map((s) => (
+                          <tr key={s.index} className="border-b border-border/40 last:border-0 hover:bg-muted/30 transition-colors">
+                            <td className="px-3 py-2 text-muted-foreground">{s.index + 1}</td>
+                            <td className="px-3 py-2 font-mono font-medium whitespace-nowrap">{s.subnet}</td>
+                            <td className="px-3 py-2 font-mono text-muted-foreground hidden sm:table-cell whitespace-nowrap">{s.broadcast}</td>
+                            <td className="px-3 py-2 font-mono text-muted-foreground hidden md:table-cell whitespace-nowrap">{s.firstHost}</td>
+                            <td className="px-3 py-2 font-mono text-muted-foreground hidden md:table-cell whitespace-nowrap">{s.lastHost}</td>
+                            <td className="px-3 py-2 text-muted-foreground hidden lg:table-cell">{s.totalHosts.toLocaleString('pt-BR')}</td>
+                            <td className="px-3 py-2">
+                              <button
+                                onClick={() => copyToClipboard(s.subnet)}
+                                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Sub-redes /{selectedPrefix}</p>
-                    <p className="text-sm font-semibold">{subnets.length.toLocaleString('pt-BR')}</p>
+                  {displayed.length === 0 && (
+                    <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma sub-rede encontrada.</div>
+                  )}
+                </div>
+
+                {/* Load more */}
+                {!searchQuery && displayedCount < subnets.length && (
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>Exibindo {displayed.length} de {subnets.length}</span>
+                    <Button size="sm" variant="outline" onClick={() => setDisplayedCount(c => Math.min(c + LOAD_BATCH, subnets.length))}>
+                      <List className="w-3.5 h-3.5 mr-1.5" /> Carregar mais
+                    </Button>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Hosts por sub-rede</p>
-                    <p className="text-sm font-semibold">{formatHostCount(subnets[0]?.totalHosts ?? 0)}</p>
+                )}
+                {searchQuery && (
+                  <p className="text-sm text-muted-foreground">{displayed.length} resultado(s) para "{searchQuery}"</p>
+                )}
+              </div>
+
+              {/* Right: sticky sidebar */}
+              <div className="space-y-3 lg:sticky lg:top-16 self-start">
+                <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                  <h3 className="text-sm font-medium flex items-center gap-2">
+                    <Info className="w-4 h-4 text-primary" /> Informações do Bloco
+                  </h3>
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">CIDR</span>
+                      <span className="font-mono font-medium text-right">{blockCidr}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Rede</span>
+                      <span className="font-mono text-right">{block.network}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Broadcast</span>
+                      <span className="font-mono text-right">{block.broadcast}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Máscara</span>
+                      <span className="font-mono text-right">{block.subnetMask}</span>
+                    </div>
+                    <div className="flex justify-between gap-2 border-t border-border/40 pt-2">
+                      <span className="text-muted-foreground shrink-0">Sub-redes /{selectedPrefix}</span>
+                      <span className="font-semibold text-primary text-right">{subnets.length.toLocaleString('pt-BR')}</span>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground shrink-0">Hosts/sub-rede</span>
+                      <span className="font-semibold text-right">{formatHostCount(subnets[0]?.totalHosts ?? 0)}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button size="sm" variant="outline" onClick={() => setExportOpen(true)}>
-                    <Download className="w-3.5 h-3.5 mr-1.5" /> Exportar
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => { setStep(2); setSubnets([]); setSelectedPrefix(null); }}>
-                    <ChevronDown className="w-3.5 h-3.5 rotate-90 mr-1.5" /> Voltar
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={reset} className="text-muted-foreground">
-                    <RotateCcw className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </div>
-            </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <Input
-                value={searchQuery}
-                onChange={e => { setSearchQuery(e.target.value); setDisplayedCount(LOAD_BATCH); }}
-                placeholder="Buscar por rede, broadcast, host..."
-                className="pl-9 font-mono text-sm"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Table */}
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/40">
-                      <th className="text-left px-3 py-2.5 font-medium text-muted-foreground w-12">#</th>
-                      <th className="text-left px-3 py-2.5 font-medium text-muted-foreground">Sub-rede</th>
-                      <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden sm:table-cell">Broadcast</th>
-                      <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Primeiro Host</th>
-                      <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden md:table-cell">Último Host</th>
-                      <th className="text-left px-3 py-2.5 font-medium text-muted-foreground hidden lg:table-cell">Hosts</th>
-                      <th className="px-3 py-2.5 w-8" />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {displayed.map((s) => (
-                      <tr key={s.index} className="border-b border-border/40 last:border-0 hover:bg-muted/30 transition-colors">
-                        <td className="px-3 py-2 text-muted-foreground">{s.index + 1}</td>
-                        <td className="px-3 py-2 font-mono font-medium">{s.subnet}</td>
-                        <td className="px-3 py-2 font-mono text-muted-foreground hidden sm:table-cell">{s.broadcast}</td>
-                        <td className="px-3 py-2 font-mono text-muted-foreground hidden md:table-cell">{s.firstHost}</td>
-                        <td className="px-3 py-2 font-mono text-muted-foreground hidden md:table-cell">{s.lastHost}</td>
-                        <td className="px-3 py-2 text-muted-foreground hidden lg:table-cell">{s.totalHosts.toLocaleString('pt-BR')}</td>
-                        <td className="px-3 py-2">
-                          <button
-                            onClick={() => copyToClipboard(s.subnet)}
-                            className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {displayed.length === 0 && (
-                <div className="py-10 text-center text-sm text-muted-foreground">Nenhuma sub-rede encontrada.</div>
-              )}
-            </div>
-
-            {/* Load more */}
-            {!searchQuery && displayedCount < subnets.length && (
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Exibindo {displayed.length} de {subnets.length}</span>
-                <Button size="sm" variant="outline" onClick={() => setDisplayedCount(c => Math.min(c + LOAD_BATCH, subnets.length))}>
-                  <List className="w-3.5 h-3.5 mr-1.5" /> Carregar mais
+                <Button className="w-full gap-2" size="sm" variant="outline" onClick={() => setExportOpen(true)}>
+                  <Download className="w-3.5 h-3.5" /> Exportar
+                </Button>
+                <Button className="w-full gap-2" size="sm" variant="ghost" onClick={() => { setStep(2); setSubnets([]); setSelectedPrefix(null); }}>
+                  <ChevronDown className="w-3.5 h-3.5 rotate-90" /> Voltar ao prefixo
+                </Button>
+                <Button className="w-full gap-2" size="sm" variant="ghost" onClick={reset} className="text-muted-foreground w-full gap-2">
+                  <RotateCcw className="w-3.5 h-3.5" /> Novo cálculo
                 </Button>
               </div>
-            )}
-            {searchQuery && (
-              <p className="text-sm text-muted-foreground">{displayed.length} resultado(s) para "{searchQuery}"</p>
-            )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

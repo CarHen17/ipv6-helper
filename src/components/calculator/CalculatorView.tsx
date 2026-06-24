@@ -162,7 +162,7 @@ export function CalculatorView() {
 
   return (
     <motion.div
-      className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto"
+      className={`p-4 md:p-6 lg:p-8 mx-auto ${ctx.mainBlock ? 'max-w-[1400px]' : 'max-w-5xl'}`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -404,8 +404,8 @@ export function CalculatorView() {
                             </td>
                              <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-primary truncate max-w-[120px] sm:max-w-none">{shortenIPv6(subnet.subnet)}</td>
                              <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/80 truncate max-w-[120px] sm:max-w-none">{shortenIPv6(subnet.initial)}</td>
-                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/80 hidden sm:table-cell">{shortenIPv6(subnet.final)}</td>
-                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/60 hidden md:table-cell">{shortenIPv6(subnet.network)}</td>
+                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/80 hidden sm:table-cell whitespace-nowrap">{shortenIPv6(subnet.final)}</td>
+                             <td className="p-2 sm:p-3 font-mono text-xs sm:text-sm text-foreground/60 hidden md:table-cell whitespace-nowrap">{shortenIPv6(subnet.network)}</td>
                           </tr>
                         );
                       })}
