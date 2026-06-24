@@ -189,10 +189,10 @@ export function CalculatorView() {
         <div className="space-y-6">
           {/* Step 1: Input */}
           <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6" layout>
-            <form onSubmit={handleCalcSubmit}>
-              <label className="block text-sm font-medium text-foreground mb-3">
-                Insira um endereço IPv6 no formato CIDR:
-              </label>
+            <form onSubmit={handleCalcSubmit} className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Insira um endereço IPv6 no formato CIDR para começar o cálculo.
+              </p>
               <div className="flex gap-2">
                 <Input
                   value={ctx.ipv6Input}
@@ -203,32 +203,27 @@ export function CalculatorView() {
                     ctx.errorMessage && "animate-shake border-destructive"
                   )}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="h-11 w-11 shrink-0 text-muted-foreground hover:text-primary"
-                  onClick={handleUseMyIp}
-                  disabled={fetchingMyIp}
-                  title="Usar meu IP atual"
-                >
-                  {fetchingMyIp
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Locate className="w-4 h-4" />
-                  }
-                </Button>
-                <Button type="submit" className="gap-2 h-11 px-5 text-sm">
+                <Button type="submit" className="gap-2 h-11 px-5 text-sm shrink-0">
                   <Calculator className="w-4 h-4" />
                   <span className="hidden sm:inline">Calcular</span>
                 </Button>
               </div>
+              <button
+                type="button"
+                onClick={handleUseMyIp}
+                disabled={fetchingMyIp}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 w-fit"
+              >
+                <Locate className={cn('w-3.5 h-3.5', fetchingMyIp && 'animate-pulse')} />
+                {fetchingMyIp ? 'Detectando...' : 'Usar meu IP atual'}
+              </button>
               <AnimatePresence>
                 {ctx.errorMessage && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm"
+                    className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm"
                   >
                     <p>{ctx.errorMessage}</p>
                     {ctx.errorSuggestion && (
