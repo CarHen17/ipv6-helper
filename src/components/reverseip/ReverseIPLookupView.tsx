@@ -158,7 +158,21 @@ export function ReverseIPLookupView() {
             <motion.div key="results"
               initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
+              className="space-y-3"
             >
+              {/* Rate-limit banner */}
+              {domainsResult?.limited && (
+                <div className="rounded-xl border border-yellow-500/40 bg-yellow-500/10 p-4 flex items-start gap-3">
+                  <AlertTriangle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-semibold text-yellow-400">Limite diário atingido — HackerTarget</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      A API gratuita do HackerTarget permite ~100 consultas/dia por IP. Os domínios exibidos são apenas do crt.sh (Certificate Transparency). Tente novamente amanhã para resultados completos.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="bg-card rounded-xl border border-border overflow-hidden">
                 {/* Table header */}
                 <div className="px-5 py-3.5 border-b border-border bg-secondary/30">

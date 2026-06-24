@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Search, Globe, Loader2, CheckCircle2, XCircle, AlertTriangle,
-  RefreshCw, Copy, Plus, Trash2, Zap,
+  RefreshCw, Copy, Plus, Trash2, Zap, Download,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { lookupDNS, type DNSRecord } from '@/lib/ping6-api';
@@ -144,6 +144,26 @@ export function ReadinessView() {
   const readyCount = results.filter(r => r.hasAAAA).length;
   const doneCount = results.filter(r => r.status === 'done').length;
 
+  const exportCSV = () => {
+    const header = 'Domínio,IPv6 (AAAA),IPv4 (A),Endereços AAAA,Endereços A,Tempo (ms)\n';
+    const rows = results
+      .filter(r => r.status === 'done' || r.status === 'error')
+      .map(r => [
+        r.domain,
+        r.hasAAAA ? 'Sim' : 'Não',
+        r.hasA ? 'Sim' : 'Não',
+        r.aaaaRecords.map(x => x.value).join(' | '),
+        r.aRecords.map(x => x.value).join(' | '),
+        r.queryTime ?? '',
+      ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'verificador_ipv6.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...fadeUp}>
       <div className="mb-8">
@@ -267,12 +287,17 @@ export function ReadinessView() {
                         </p>
                       </div>
                     </div>
-                    {/* Progress bar */}
-                    <div className="w-full sm:w-32 h-2 bg-secondary rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all duration-500"
-                        style={{ width: `${doneCount > 0 ? (readyCount / doneCount) * 100 : 0}%` }}
-                      />
+                    <div className="flex items-center gap-3 flex-wrap">
+                      {/* Progress bar */}
+                      <div className="w-full sm:w-32 h-2 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          style={{ width: `${doneCount > 0 ? (readyCount / doneCount) * 100 : 0}%` }}
+                        />
+                      </div>
+                      <Button size="sm" variant="outline" onClick={exportCSV} className="gap-1.5 text-xs h-7 shrink-0">
+                        <Download className="w-3 h-3" /> Exportar CSV
+                      </Button>
                     </div>
                   </div>
                 </div>
