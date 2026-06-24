@@ -7,13 +7,16 @@ import { Input } from '@/components/ui/input';
 import {
   Calculator, Copy, Download, ChevronDown, X,
   List, Plus, RotateCcw, RefreshCw, Info, FileText, FileSpreadsheet,
-  FileCode, Search, Shield, ShieldOff,
+  FileCode, Search, Shield, ShieldOff, Locate,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   loadIPv4History, saveIPv4History,
   type IPv4HistoryEntry, MAX_IPV4_HISTORY,
 } from '@/lib/ipv4-history';
+import { IPv4InfoPanel } from '@/components/info/IPv4InfoPanel';
+import { fetchMyIP } from '@/lib/ping6-api';
+import { lookupBGP } from '@/lib/ipv6-info';
 import { StepIndicator } from './StepIndicator';
 import {
   validateIPv4,
@@ -111,6 +114,8 @@ export function IPv4CalculatorView() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportFilename, setExportFilename] = useState('subnets_ipv4');
   const [customPrefix, setCustomPrefix] = useState('');
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false);
+  const [fetchingMyIp, setFetchingMyIp] = useState(false);
 
   // Restore from history navigation
   useEffect(() => {
@@ -144,6 +149,36 @@ export function IPv4CalculatorView() {
     setStep(3);
     toast.success('Cálculo restaurado');
   }
+
+  const handleUseMyIp = async () => {
+    setFetchingMyIp(true);
+    try {
+      const result = await fetchMyIP();
+      if (!result.ipv4) {
+        toast.error('Não foi possível detectar um IP público IPv4.');
+        return;
+      }
+      const bgp = await lookupBGP(result.ipv4).catch(() => null);
+      if (bgp?.prefix) {
+        setInput(bgp.prefix);
+        setError(null); setErrorSuggestion(null);
+        const asLabel = bgp.asn ? ` · AS${bgp.asn}${bgp.asName ? ` – ${bgp.asName}` : ''}` : '';
+        toast.success(`Bloco anunciado: ${bgp.prefix}`, {
+          description: `IP detectado: ${result.ipv4}${asLabel}`,
+        });
+      } else {
+        setInput(`${result.ipv4}/32`);
+        setError(null); setErrorSuggestion(null);
+        toast.info(`IPv4 detectado: ${result.ipv4}/32`, {
+          description: 'Bloco BGP não encontrado. Troque o prefixo manualmente.',
+        });
+      }
+    } catch {
+      toast.error('Falha ao detectar IP público.');
+    } finally {
+      setFetchingMyIp(false);
+    }
+  };
 
   const displayed = useMemo(() => {
     const filtered = searchQuery
@@ -256,6 +291,14 @@ export function IPv4CalculatorView() {
                   <Calculator className="w-4 h-4 mr-2" /> Calcular
                 </Button>
               </div>
+              <button
+                onClick={handleUseMyIp}
+                disabled={fetchingMyIp}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors disabled:opacity-50 w-fit"
+              >
+                <Locate className={cn('w-3.5 h-3.5', fetchingMyIp && 'animate-pulse')} />
+                {fetchingMyIp ? 'Detectando...' : 'Usar meu IP atual'}
+              </button>
               {error && (
                 <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 space-y-1">
                   <p className="text-sm text-destructive font-medium">{error}</p>
@@ -277,7 +320,7 @@ export function IPv4CalculatorView() {
                 <h3 className="text-sm font-semibold flex items-center gap-2">
                   <Info className="w-4 h-4 text-primary" /> Bloco Principal
                 </h3>
-                <div className="flex items-center gap-1.5 text-xs">
+                <div className="flex items-center gap-3 text-xs">
                   {block.isPrivate ? (
                     <span className="flex items-center gap-1 text-emerald-500">
                       <Shield className="w-3 h-3" /> Privado
@@ -287,6 +330,12 @@ export function IPv4CalculatorView() {
                       <ShieldOff className="w-3 h-3" /> Público
                     </span>
                   )}
+                  <button
+                    onClick={() => setInfoPanelOpen(true)}
+                    className="flex items-center gap-1 text-primary hover:text-primary/80 transition-colors font-medium"
+                  >
+                    <Info className="w-3.5 h-3.5" /> Info do Bloco
+                  </button>
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
@@ -488,6 +537,9 @@ export function IPv4CalculatorView() {
                   </div>
                 </div>
 
+                <Button className="w-full gap-2" size="sm" variant="outline" onClick={() => setInfoPanelOpen(true)}>
+                  <Info className="w-3.5 h-3.5" /> Info do Bloco
+                </Button>
                 <Button className="w-full gap-2" size="sm" variant="outline" onClick={() => setExportOpen(true)}>
                   <Download className="w-3.5 h-3.5" /> Exportar
                 </Button>
@@ -535,6 +587,12 @@ export function IPv4CalculatorView() {
           </motion.div>
         </div>
       )}
+
+      <IPv4InfoPanel
+        open={infoPanelOpen}
+        onOpenChange={setInfoPanelOpen}
+        ipv4Address={blockCidr || (block ? `${block.network}/${mainPrefix}` : '')}
+      />
     </div>
   );
 }
