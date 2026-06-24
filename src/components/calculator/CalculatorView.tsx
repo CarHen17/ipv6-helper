@@ -162,7 +162,7 @@ export function CalculatorView() {
 
   return (
     <motion.div
-      className="p-4 md:p-6 lg:p-8 max-w-[1400px] mx-auto"
+      className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto"
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -172,7 +172,10 @@ export function CalculatorView() {
         <StepIndicator currentStep={ctx.currentStep} steps={STEPS} onStepClick={handleStepClick} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8">
+      <div className={ctx.mainBlock
+        ? "grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8"
+        : "max-w-xl mx-auto"
+      }>
         <div className="space-y-6">
           {/* Step 1: Input */}
           <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6" layout>
