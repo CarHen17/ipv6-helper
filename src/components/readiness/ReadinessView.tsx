@@ -166,14 +166,21 @@ export function ReadinessView() {
 
   return (
     <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...fadeUp}>
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-          <Globe className="w-5 h-5 text-primary" />
-          Verificador IPv6
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Analise se domínios possuem registros AAAA (IPv6) configurados.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+            <Globe className="w-5 h-5 text-primary" />
+            Verificador IPv6
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Analise se domínios possuem registros AAAA (IPv6) configurados.
+          </p>
+        </div>
+        {results.length > 0 && !loading && (
+          <button onClick={handleReset} className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors flex items-center gap-1 mt-1 shrink-0">
+            <RefreshCw className="w-3 h-3" /> Limpar
+          </button>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -240,11 +247,6 @@ export function ReadinessView() {
               }
               Verificar
             </Button>
-            {results.length > 0 && !loading && (
-              <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
-                <RefreshCw className="w-3 h-3" /> Limpar
-              </Button>
-            )}
           </div>
         </motion.div>
 
