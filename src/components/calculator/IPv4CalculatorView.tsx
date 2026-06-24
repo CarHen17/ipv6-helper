@@ -275,17 +275,6 @@ export function IPv4CalculatorView() {
                 </div>
               )}
               {/* Quick examples */}
-              <div className="flex flex-wrap gap-2">
-                {['192.168.0.0/24', '10.0.0.0/8', '172.16.0.0/12'].map(ex => (
-                  <button
-                    key={ex}
-                    onClick={() => { setInput(ex); setError(null); }}
-                    className="text-xs font-mono px-2 py-1 rounded-md bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
-                  >
-                    {ex}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* History */}
