@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Calculator, Copy, Download, ChevronDown, X,
-  List, Plus, RotateCcw, Info, FileText, FileSpreadsheet,
+  List, Plus, RotateCcw, RefreshCw, Info, FileText, FileSpreadsheet,
   FileCode, Search, Shield, ShieldOff, Clock, Trash2,
 } from 'lucide-react';
 
@@ -241,12 +241,21 @@ export function IPv4CalculatorView() {
 
   return (
     <div className={`w-full mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-6 ${step === 3 ? 'max-w-6xl' : 'max-w-4xl'}`}>
-      <StepIndicator steps={STEPS} currentStep={step} onStepClick={(s) => {
-        if (s < step) {
-          if (s === 1) reset();
-          if (s === 2 && step === 3) { setStep(2); setSubnets([]); setSelectedPrefix(null); }
-        }
-      }} />
+      <div className="flex items-center gap-3">
+        <div className="flex-1">
+          <StepIndicator steps={STEPS} currentStep={step} onStepClick={(s) => {
+            if (s < step) {
+              if (s === 1) reset();
+              if (s === 2 && step === 3) { setStep(2); setSubnets([]); setSelectedPrefix(null); }
+            }
+          }} />
+        </div>
+        {step > 1 && (
+          <button onClick={reset} className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors flex items-center gap-1 shrink-0">
+            <RefreshCw className="w-3 h-3" /> Limpar
+          </button>
+        )}
+      </div>
 
       <AnimatePresence mode="wait">
         {/* ── STEP 1: Input ── */}

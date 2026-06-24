@@ -106,14 +106,21 @@ export function DNSView() {
 
   return (
     <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...fadeUp}>
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-          <Globe className="w-5 h-5 text-primary" />
-          DNS Lookup
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Consulte registros DNS usando resolvedores globais com suporte a IPv6.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold text-foreground tracking-tight flex items-center gap-2">
+            <Globe className="w-5 h-5 text-primary" />
+            DNS Lookup
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Consulte registros DNS usando resolvedores globais com suporte a IPv6.
+          </p>
+        </div>
+        {(result || error) && !loading && (
+          <button onClick={handleReset} className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors flex items-center gap-1 mt-1 shrink-0">
+            <RefreshCw className="w-3 h-3" /> Limpar
+          </button>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -214,11 +221,6 @@ export function DNSView() {
               }
               Consultar
             </Button>
-            {(result || error) && !loading && (
-              <Button variant="ghost" size="sm" onClick={handleReset} className="gap-1.5 text-xs text-muted-foreground h-8">
-                <RefreshCw className="w-3 h-3" /> Limpar
-              </Button>
-            )}
           </div>
         </motion.div>
 
