@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calculator, Network, Clock, RotateCcw, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch, ArrowRightLeft, FileSearch, Globe2 } from 'lucide-react';
+import { Calculator, Network, Clock, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch, ArrowRightLeft, FileSearch, Globe2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCalculator } from '@/hooks/useCalculatorState';
 import { useTheme } from '@/hooks/useTheme';
@@ -36,15 +36,13 @@ const navItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { resetCalculadora, mainBlock, ipv6Input, currentStep } = useCalculator();
+  const { mainBlock, ipv6Input } = useCalculator();
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === 'collapsed';
   const { theme, toggleTheme } = useTheme();
   const [infoPanelOpen, setInfoPanelOpen] = useState(false);
 
   const hasBlock = !!mainBlock || !!ipv6Input.trim();
-  const isCalculatorPage = location.pathname === '/';
-  const hasCalculatorState = isCalculatorPage && (currentStep > 1 || hasBlock);
   const infoAddress = mainBlock
     ? `${mainBlock.network}/${mainBlock.prefix}`
     : ipv6Input.trim();
@@ -139,18 +137,6 @@ export function AppSidebar() {
                 <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            {hasCalculatorState && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={resetCalculadora}
-                  tooltip="Limpar calculadora"
-                  className="text-destructive hover:bg-destructive/10 transition-all duration-200 text-sm"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Limpar</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
