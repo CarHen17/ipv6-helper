@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Calculator, Copy, Download, ChevronDown, X,
+  Copy, Download, ChevronDown, X,
   List, Plus, RotateCcw, Info, FileText, FileSpreadsheet,
   FileCode, Search, Shield, ShieldOff,
 } from 'lucide-react';
@@ -179,18 +179,7 @@ export function IPv4CalculatorView() {
   const prefixOptions = Array.from({ length: 32 - mainPrefix }, (_, i) => mainPrefix + 1 + i);
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
-          <Calculator className="w-5 h-5 text-blue-500" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold">Calculadora IPv4</h2>
-          <p className="text-xs text-muted-foreground">Sub-redes, máscaras e endereçamento</p>
-        </div>
-      </div>
-
+    <div className="w-full max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-6">
       <StepIndicator steps={STEPS} currentStep={step} onStepClick={(s) => {
         if (s < step) {
           if (s === 1) reset();
