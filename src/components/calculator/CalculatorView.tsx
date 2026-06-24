@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { IPv6InfoPanel } from '@/components/info/IPv6InfoPanel';
 
 const STEPS = [
   { label: 'Inserir IPv6' },
@@ -49,6 +50,7 @@ export function CalculatorView() {
   const [subnetIpsModalOpen, setSubnetIpsModalOpen] = useState(false);
   const [confirmPrefix, setConfirmPrefix] = useState<{ prefix: number; count: bigint } | null>(null);
   const [fetchingMyIp, setFetchingMyIp] = useState(false);
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false);
 
   const handleUseMyIp = async () => {
     setFetchingMyIp(true);
@@ -445,14 +447,24 @@ export function CalculatorView() {
                 transition={{ duration: 0.3 }}
                 className="bg-card rounded-xl border border-border p-5 sticky top-16"
               >
-                 <h3 className="text-sm font-medium flex items-center gap-2 mb-4">
-                   <Info className="w-4 h-4 text-primary" />
-                   {ctx.individualSelectedIndex !== null ? (
-                     <span className="text-[hsl(var(--success))]">Bloco Selecionado</span>
-                   ) : (
-                     'Informações do Bloco'
+                 <div className="flex items-center justify-between mb-4">
+                   <h3 className="text-sm font-medium flex items-center gap-2">
+                     <Info className="w-4 h-4 text-primary" />
+                     {ctx.individualSelectedIndex !== null ? (
+                       <span className="text-[hsl(var(--success))]">Bloco Selecionado</span>
+                     ) : (
+                       'Informações do Bloco'
+                     )}
+                   </h3>
+                   {ctx.individualSelectedIndex === null && (
+                     <button
+                       onClick={() => setInfoPanelOpen(true)}
+                       className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
+                     >
+                       <Info className="w-3.5 h-3.5" /> Info do Bloco
+                     </button>
                    )}
-                 </h3>
+                 </div>
 
                 <div className="space-y-3">
                   <InfoRow label="CIDR" value={sidebarBlockDisplay} onCopy={() => copyToClipboard(sidebarBlockDisplay)} />
@@ -710,6 +722,12 @@ export function CalculatorView() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <IPv6InfoPanel
+        open={infoPanelOpen}
+        onOpenChange={setInfoPanelOpen}
+        ipv6Address={ctx.mainBlock ? `${ctx.mainBlock.network}/${ctx.mainBlock.prefix}` : ctx.ipv6Input.trim()}
+      />
     </motion.div>
   );
 }

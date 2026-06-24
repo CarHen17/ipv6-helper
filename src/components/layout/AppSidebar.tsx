@@ -1,10 +1,7 @@
-import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Calculator, Network, Clock, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Info, Cpu, ShieldCheck, Search, Activity, ScanSearch, ArrowRightLeft, FileSearch, Globe2 } from 'lucide-react';
+import { Calculator, Network, Clock, Globe, Sun, Moon, PanelLeftClose, PanelLeft, Cpu, ShieldCheck, Search, Activity, ScanSearch, ArrowRightLeft, FileSearch, Globe2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useCalculator } from '@/hooks/useCalculatorState';
 import { useTheme } from '@/hooks/useTheme';
-import { IPv6InfoPanel } from '@/components/info/IPv6InfoPanel';
 import {
   Sidebar,
   SidebarContent,
@@ -36,16 +33,9 @@ const navItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { mainBlock, ipv6Input } = useCalculator();
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === 'collapsed';
   const { theme, toggleTheme } = useTheme();
-  const [infoPanelOpen, setInfoPanelOpen] = useState(false);
-
-  const hasBlock = !!mainBlock || !!ipv6Input.trim();
-  const infoAddress = mainBlock
-    ? `${mainBlock.network}/${mainBlock.prefix}`
-    : ipv6Input.trim();
 
   return (
     <>
@@ -115,18 +105,6 @@ export function AppSidebar() {
 
         <SidebarFooter className="border-t border-sidebar-border">
           <SidebarMenu>
-            {hasBlock && (
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setInfoPanelOpen(true)}
-                  tooltip="Info do bloco"
-                  className="text-primary hover:bg-primary/10 transition-all duration-200 text-sm"
-                >
-                  <Info className="w-4 h-4" />
-                  <span>Info do Bloco</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={toggleTheme}
@@ -141,11 +119,6 @@ export function AppSidebar() {
         </SidebarFooter>
       </Sidebar>
 
-      <IPv6InfoPanel
-        open={infoPanelOpen}
-        onOpenChange={setInfoPanelOpen}
-        ipv6Address={infoAddress}
-      />
     </>
   );
 }
