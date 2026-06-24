@@ -117,9 +117,6 @@ export function IPv4to6View() {
             </div>
           </details>
 
-          {results.length > 0 && (
-            <div className="flex justify-end">
-          )}
         </motion.div>
 
         {/* Private IP warning */}
