@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CalculatorView } from '@/components/calculator/CalculatorView';
 import { IPv4CalculatorView } from '@/components/calculator/IPv4CalculatorView';
@@ -12,7 +13,9 @@ const MODES: { value: Mode; label: string; badge: string }[] = [
 ];
 
 const Index = () => {
-  const [mode, setMode] = useState<Mode>('ipv6');
+  const location = useLocation();
+  const initialMode: Mode = (location.state as { _restoreMode?: string })?._restoreMode === 'ipv4' ? 'ipv4' : 'ipv6';
+  const [mode, setMode] = useState<Mode>(initialMode);
 
   return (
     <div className="w-full">

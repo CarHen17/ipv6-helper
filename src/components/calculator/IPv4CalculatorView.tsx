@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -6,39 +7,13 @@ import { Input } from '@/components/ui/input';
 import {
   Calculator, Copy, Download, ChevronDown, X,
   List, Plus, RotateCcw, RefreshCw, Info, FileText, FileSpreadsheet,
-  FileCode, Search, Shield, ShieldOff, Clock, Trash2,
+  FileCode, Search, Shield, ShieldOff,
 } from 'lucide-react';
-
-const IPV4_HISTORY_KEY = 'ipv4calc_history';
-const MAX_IPV4_HISTORY = 15;
-
-export interface IPv4HistoryEntry {
-  cidr: string;
-  subnetPrefix: number;
-  count: number;
-  timestamp: number;
-}
-
-function loadIPv4History(): IPv4HistoryEntry[] {
-  try { return JSON.parse(localStorage.getItem(IPV4_HISTORY_KEY) || '[]'); } catch { return []; }
-}
-
-function saveIPv4History(h: IPv4HistoryEntry[]) {
-  try { localStorage.setItem(IPV4_HISTORY_KEY, JSON.stringify(h)); } catch { /* quota */ }
-}
-
-function relativeTime(ts: number): string {
-  const diff = Date.now() - ts;
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(diff / 3600000);
-  const d = Math.floor(diff / 86400000);
-  if (m < 1) return 'agora mesmo';
-  if (m < 60) return `há ${m}min`;
-  if (h < 24) return `há ${h}h`;
-  if (d < 7) return `há ${d}d`;
-  return new Date(ts).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-}
 import { cn } from '@/lib/utils';
+import {
+  loadIPv4History, saveIPv4History,
+  type IPv4HistoryEntry, MAX_IPV4_HISTORY,
+} from '@/lib/ipv4-history';
 import { StepIndicator } from './StepIndicator';
 import {
   validateIPv4,
@@ -121,6 +96,7 @@ function InfoRow({ label, value, onCopy }: InfoRowProps) {
 }
 
 export function IPv4CalculatorView() {
+  const location = useLocation();
   const [step, setStep] = useState(1);
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -135,23 +111,26 @@ export function IPv4CalculatorView() {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportFilename, setExportFilename] = useState('subnets_ipv4');
   const [customPrefix, setCustomPrefix] = useState('');
-  const [history, setHistory] = useState<IPv4HistoryEntry[]>(loadIPv4History);
-  const [confirmClearHistory, setConfirmClearHistory] = useState(false);
 
-  useEffect(() => { saveIPv4History(history); }, [history]);
+  // Restore from history navigation
+  useEffect(() => {
+    const entry = location.state as IPv4HistoryEntry | undefined;
+    if (entry?.cidr && entry?.subnetPrefix) {
+      restoreHistoryEntry(entry);
+      window.history.replaceState({}, '');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function addToHistory(entry: IPv4HistoryEntry) {
-    setHistory(prev => {
-      const filtered = prev.filter(e => !(e.cidr === entry.cidr && e.subnetPrefix === entry.subnetPrefix));
-      return [entry, ...filtered].slice(0, MAX_IPV4_HISTORY);
-    });
+    const prev = loadIPv4History();
+    const filtered = prev.filter(e => !(e.cidr === entry.cidr && e.subnetPrefix === entry.subnetPrefix));
+    saveIPv4History([entry, ...filtered].slice(0, MAX_IPV4_HISTORY));
   }
 
-  function restoreHistory(entry: IPv4HistoryEntry) {
+  function restoreHistoryEntry(entry: IPv4HistoryEntry) {
     setInput(entry.cidr);
     setError(null); setErrorSuggestion(null);
-    const err = validateIPv4(entry.cidr + '/0' === entry.cidr ? entry.cidr : entry.cidr);
-    if (err) return;
     const parsed = parseIPv4Block(entry.cidr);
     setBlock(parsed);
     setBlockCidr(entry.cidr);
@@ -286,40 +265,6 @@ export function IPv4CalculatorView() {
               {/* Quick examples */}
             </div>
 
-            {/* History */}
-            {history.length > 0 && (
-              <div className="rounded-xl border border-border bg-card overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border/60">
-                  <span className="text-sm font-medium flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-primary" /> Histórico
-                  </span>
-                  <button
-                    onClick={() => setConfirmClearHistory(true)}
-                    className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
-                  >
-                    <Trash2 className="w-3 h-3" /> Limpar
-                  </button>
-                </div>
-                <div className="divide-y divide-border/40">
-                  {history.map((entry, i) => (
-                    <button
-                      key={i}
-                      onClick={() => restoreHistory(entry)}
-                      className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-muted/40 transition-colors text-left group"
-                    >
-                      <div>
-                        <span className="text-sm font-mono font-medium">{entry.cidr}</span>
-                        <span className="text-xs text-muted-foreground ml-2">→ /{entry.subnetPrefix}</span>
-                        <span className="text-xs text-muted-foreground ml-1">({entry.count.toLocaleString('pt-BR')} sub-redes)</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors shrink-0 ml-2">
-                        {relativeTime(entry.timestamp)}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </motion.div>
         )}
 
@@ -557,21 +502,6 @@ export function IPv4CalculatorView() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Confirm clear history */}
-      {confirmClearHistory && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-card border border-border rounded-xl p-6 w-full max-w-sm space-y-4 shadow-xl">
-            <h3 className="font-semibold">Limpar histórico IPv4?</h3>
-            <p className="text-sm text-muted-foreground">Essa ação não pode ser desfeita.</p>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" size="sm" onClick={() => setConfirmClearHistory(false)}>Cancelar</Button>
-              <Button variant="destructive" size="sm" onClick={() => { setHistory([]); setConfirmClearHistory(false); }}>Limpar</Button>
-            </div>
-          </motion.div>
-        </div>
-      )}
 
       {/* Export modal */}
       {exportOpen && (
