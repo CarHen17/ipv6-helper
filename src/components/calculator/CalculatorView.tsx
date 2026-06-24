@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Calculator, Search, Copy, Download, ChevronDown, X,
-  List, Plus, RotateCcw, Info, Layers, ArrowLeftRight, TriangleAlert,
+  List, Plus, RotateCcw, RefreshCw, Info, Layers, ArrowLeftRight, TriangleAlert,
   FileText, FileSpreadsheet, FileCode, Loader2, AlertTriangle, Locate
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -168,8 +168,18 @@ export function CalculatorView() {
       transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
       {/* Step indicator */}
-      <div className="mb-6">
-        <StepIndicator currentStep={ctx.currentStep} steps={STEPS} onStepClick={handleStepClick} />
+      <div className="mb-6 flex items-center gap-3">
+        <div className="flex-1">
+          <StepIndicator currentStep={ctx.currentStep} steps={STEPS} onStepClick={handleStepClick} />
+        </div>
+        {ctx.mainBlock && (
+          <button
+            onClick={() => ctx.resetCalculadora()}
+            className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors flex items-center gap-1 shrink-0"
+          >
+            <RefreshCw className="w-3 h-3" /> Limpar
+          </button>
+        )}
       </div>
 
       <div className={ctx.mainBlock
@@ -339,15 +349,6 @@ export function CalculatorView() {
                         }}
                       >
                         <Download className="w-3 h-3" /> CSV
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-muted-foreground hover:text-primary"
-                        onClick={() => handleStepClick(2)}
-                        title="Novo cálculo"
-                      >
-                        <RotateCcw className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   </div>
