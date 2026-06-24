@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Search, Copy, RefreshCw, Globe, Clock, Server, Loader2,
-  AlertTriangle, CheckCircle2, ChevronDown, Zap,
+  AlertTriangle, CheckCircle2, ChevronDown, Zap, MapPin,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -14,6 +14,7 @@ import {
   type DNSRecordType,
   type DNSResolver,
 } from '@/lib/ping6-api';
+import { lookupGeo, countryFlag, type GeoInfo } from '@/lib/geo-utils';
 
 const fadeUp = {
   initial: { opacity: 0, y: 16 },
@@ -61,6 +62,8 @@ export function DNSView() {
   const [loading, setLoading]     = useState(false);
   const [result, setResult]       = useState<DNSResult | null>(null);
   const [error, setError]         = useState('');
+  const [geo, setGeo]             = useState<GeoInfo | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
 
   const handleLookup = async () => {
     const h = hostname.trim();
@@ -68,11 +71,18 @@ export function DNSView() {
     setLoading(true);
     setError('');
     setResult(null);
+    setGeo(null);
     try {
       const data = await lookupDNS(h, dnsType, resolver);
       setResult(data);
       if (data.records.length === 0) {
         toast.info('Nenhum registro encontrado para este hostname e tipo.');
+      }
+      // Geo lookup for first AAAA or A record (best-effort)
+      const firstIP = data.records.find(r => r.type === 'AAAA' || r.type === 'A')?.value;
+      if (firstIP) {
+        setGeoLoading(true);
+        lookupGeo(firstIP).then(g => setGeo(g)).catch(() => {}).finally(() => setGeoLoading(false));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erro ao consultar DNS';
@@ -87,6 +97,7 @@ export function DNSView() {
     setHostname('');
     setResult(null);
     setError('');
+    setGeo(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -258,9 +269,26 @@ export function DNSView() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Zap className="w-3 h-3" />
-                  {result.queryTime}ms
+                <div className="flex items-center gap-3 flex-wrap">
+                  {(geo || geoLoading) && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      {geoLoading
+                        ? <Loader2 className="w-3 h-3 animate-spin" />
+                        : geo && (
+                          <>
+                            <MapPin className="w-3 h-3" />
+                            <span>{countryFlag(geo.country ?? '')}</span>
+                            <span>{[geo.city, geo.countryName].filter(Boolean).join(', ')}</span>
+                            {geo.org && <span className="hidden sm:inline">· {geo.org}</span>}
+                          </>
+                        )
+                      }
+                    </div>
+                  )}
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Zap className="w-3 h-3" />
+                    {result.queryTime}ms
+                  </div>
                 </div>
               </div>
 
