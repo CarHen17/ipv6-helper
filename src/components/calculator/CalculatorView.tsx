@@ -303,59 +303,71 @@ export function CalculatorView() {
                 className="bg-card rounded-xl border border-border overflow-hidden"
               >
                 {/* Table header bar */}
-                <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between flex-wrap gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <h3 className="text-base font-medium text-foreground">Sub-redes</h3>
-                    <span className="px-2.5 py-0.5 rounded-full bg-primary/15 text-primary text-xs font-semibold tabular-nums">
-                      {ctx.subRedesGeradas.length.toLocaleString('pt-BR')}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs gap-1.5 h-7 text-muted-foreground hover:text-primary"
-                      onClick={() => handleStepClick(2)}
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      Novo cálculo
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                      <Input
-                        value={searchQuery}
-                        onChange={e => setSearchQuery(e.target.value)}
-                        placeholder="Filtrar..."
-                        className="pl-8 h-8 text-xs w-28 sm:w-40 bg-secondary/50 border-border/40"
-                      />
+                <div className="px-4 py-3 border-b border-border/60 space-y-2.5">
+                  {/* Row 1: title + actions */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-foreground">Sub-redes</h3>
+                      <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary text-xs font-semibold tabular-nums">
+                        {ctx.subRedesGeradas.length.toLocaleString('pt-BR')}
+                      </span>
                     </div>
-                    {ctx.selectedIndices.size === 1 && (
-                      <Button size="sm" variant="outline" className="text-xs gap-1 h-8" onClick={handleGenerateSubnetIps}>
-                        <List className="w-3.5 h-3.5" /> IPs
+                    <div className="flex items-center gap-1">
+                      {ctx.selectedIndices.size === 1 && (
+                        <Button size="sm" variant="outline" className="text-xs gap-1 h-7" onClick={handleGenerateSubnetIps}>
+                          <List className="w-3 h-3" /> IPs
+                        </Button>
+                      )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        onClick={() => setReverseOpen(true)}
+                        title="Busca reversa"
+                      >
+                        <Search className="w-3.5 h-3.5" />
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-xs gap-1 h-7"
+                        onClick={() => {
+                          exportSubnetsToCSV(
+                            searchQuery ? filteredSubnets.map(f => f.subnet) : ctx.subRedesGeradas
+                          );
+                          toast.success('Sub-redes exportadas como CSV');
+                        }}
+                      >
+                        <Download className="w-3 h-3" /> CSV
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7 text-muted-foreground hover:text-primary"
+                        onClick={() => handleStepClick(2)}
+                        title="Novo cálculo"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  {/* Row 2: search */}
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+                    <Input
+                      value={searchQuery}
+                      onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Filtrar sub-redes..."
+                      className="pl-8 h-8 text-xs w-full bg-secondary/50 border-border/40"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                     )}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-xs h-8 px-2 text-muted-foreground hover:text-foreground"
-                      onClick={() => setReverseOpen(true)}
-                      title="Busca reversa"
-                    >
-                      <Search className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs gap-1 h-8"
-                      onClick={() => {
-                        exportSubnetsToCSV(
-                          searchQuery ? filteredSubnets.map(f => f.subnet) : ctx.subRedesGeradas
-                        );
-                        toast.success('Sub-redes exportadas como CSV');
-                      }}
-                    >
-                      <Download className="w-3.5 h-3.5" /> CSV
-                    </Button>
                   </div>
                 </div>
 
