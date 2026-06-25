@@ -220,7 +220,7 @@ export function ReverseIPLookupView() {
                   <div>
                     <p className="text-sm font-semibold text-yellow-400">Limite diário atingido — HackerTarget</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      A API gratuita do HackerTarget permite ~100 consultas/dia por IP. Os domínios exibidos são apenas do crt.sh (Certificate Transparency). Tente novamente amanhã para resultados completos.
+                      A API gratuita do HackerTarget permite ~100 consultas/dia por IP. Os domínios exibidos são do crt.sh e Shodan InternetDB. Tente novamente amanhã para resultados completos.
                     </p>
                   </div>
                 </div>
