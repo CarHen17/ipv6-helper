@@ -51,7 +51,7 @@ export function exportToJSON(data: IPData[], filename = 'ips_ipv6', metadata: Re
   const jsonData = {
     metadata: {
       generated_at: new Date().toISOString(),
-      generated_by: 'Calculadora IPv6',
+      generated_by: 'IP Toolkit',
       total_ips: data.length,
       ...metadata,
     },

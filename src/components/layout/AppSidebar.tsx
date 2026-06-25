@@ -59,8 +59,8 @@ export function AppSidebar() {
             {!collapsed && (
               <>
                 <div className="overflow-hidden flex-1 min-w-0">
-                  <h1 className="text-sm font-semibold text-sidebar-foreground truncate">Calculadora IPv6</h1>
-                  <p className="text-xs text-muted-foreground truncate leading-tight">Sub-redes & Planejamento</p>
+                  <h1 className="text-sm font-semibold text-sidebar-foreground truncate">IP Toolkit</h1>
+                  <p className="text-xs text-muted-foreground truncate leading-tight">IPv4 & IPv6 · Redes</p>
                 </div>
                 <button
                   onClick={toggleSidebar}
