@@ -177,6 +177,31 @@ export async function lookupCertDomains(ip: string): Promise<string[]> {
   }
 }
 
+interface ShodanInternetDBResult {
+  hostnames: string[];
+  error: boolean;
+}
+
+/**
+ * Query Shodan InternetDB for hostnames associated with an IP.
+ * Free, no API key required. Works well for IPv4; IPv6 coverage is limited.
+ */
+export async function lookupShodanHostnames(ip: string): Promise<ShodanInternetDBResult> {
+  try {
+    const res = await withTimeout(
+      fetch(`https://internetdb.shodan.io/${encodeURIComponent(ip)}`, {
+        headers: { Accept: 'application/json' },
+      }),
+      TIMEOUT_MS
+    );
+    if (!res.ok) return { hostnames: [], error: res.status !== 404 };
+    const data = await res.json() as { hostnames?: string[] };
+    return { hostnames: Array.isArray(data.hostnames) ? data.hostnames : [], error: false };
+  } catch {
+    return { hostnames: [], error: true };
+  }
+}
+
 /** Merge and deduplicate domain lists from multiple sources. */
 export function mergeDomains(...lists: string[][]): string[] {
   const seen = new Set<string>();

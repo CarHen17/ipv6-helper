@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
-  lookupPTR, lookupPTRv4, lookupHostedDomains, lookupCertDomains, mergeDomains,
-  normaliseIPv6, normaliseIPv4, type PTRResult, type HackerTargetResult,
+  lookupPTR, lookupPTRv4, lookupHostedDomains, lookupCertDomains, lookupShodanHostnames,
+  mergeDomains, normaliseIPv6, normaliseIPv4, type PTRResult, type HackerTargetResult,
 } from '@/lib/reverse-ip-api';
 import { lookupGeo, countryFlag, type GeoInfo } from '@/lib/geo-utils';
 
@@ -48,13 +48,15 @@ export function ReverseIPLookupView() {
   const [ptrResult,     setPtrResult]     = useState<PTRResult | null>(null);
   const [domainsResult, setDomainsResult] = useState<HackerTargetResult | null>(null);
   const [certDomains,   setCertDomains]   = useState<string[] | null>(null);
+  const [shodanHostnames, setShodanHostnames] = useState<string[] | null>(null);
   const [geo,           setGeo]           = useState<GeoInfo | null>(null);
 
-  const hasResult = !!(ptrResult || domainsResult || certDomains || geo);
+  const hasResult = !!(ptrResult || domainsResult || certDomains || shodanHostnames || geo);
 
   const allDomains = mergeDomains(
     domainsResult?.domains ?? [],
     certDomains ?? [],
+    shodanHostnames ?? [],
   );
 
   const handleSearch = async () => {
@@ -75,21 +77,24 @@ export function ReverseIPLookupView() {
     setPtrResult(null);
     setDomainsResult(null);
     setCertDomains(null);
+    setShodanHostnames(null);
     setGeo(null);
     setSearched(canonical);
 
     const ptrLookup = mode === 'ipv6' ? lookupPTR(canonical) : lookupPTRv4(canonical);
 
-    const [ptr, domains, certs, geoData] = await Promise.allSettled([
+    const [ptr, domains, certs, shodan, geoData] = await Promise.allSettled([
       ptrLookup,
       lookupHostedDomains(canonical),
       lookupCertDomains(canonical),
+      lookupShodanHostnames(canonical),
       lookupGeo(canonical),
     ]);
 
-    if (ptr.status === 'fulfilled')     setPtrResult(ptr.value);
+    if (ptr.status === 'fulfilled')    setPtrResult(ptr.value);
     if (domains.status === 'fulfilled') setDomainsResult(domains.value);
     if (certs.status === 'fulfilled')   setCertDomains(certs.value);
+    if (shodan.status === 'fulfilled')  setShodanHostnames(shodan.value.hostnames);
     if (geoData.status === 'fulfilled') setGeo(geoData.value);
 
     setLoading(false);
@@ -97,13 +102,13 @@ export function ReverseIPLookupView() {
 
   const handleReset = () => {
     setIp(''); setError(''); setSearched('');
-    setPtrResult(null); setDomainsResult(null); setCertDomains(null); setGeo(null);
+    setPtrResult(null); setDomainsResult(null); setCertDomains(null); setShodanHostnames(null); setGeo(null);
   };
 
   const handleModeChange = (m: Mode) => {
     setMode(m);
     setIp(''); setError(''); setSearched('');
-    setPtrResult(null); setDomainsResult(null); setCertDomains(null); setGeo(null);
+    setPtrResult(null); setDomainsResult(null); setCertDomains(null); setShodanHostnames(null); setGeo(null);
   };
 
   const examples = mode === 'ipv6' ? EXAMPLES_V6 : EXAMPLES_V4;
@@ -288,7 +293,7 @@ export function ReverseIPLookupView() {
                             <span className={cn('font-semibold', allDomains.length > 0 ? 'text-primary' : 'text-muted-foreground')}>
                               {allDomains.length}
                             </span>
-                            {(domainsResult || certDomains) && (
+                            {(domainsResult || certDomains || shodanHostnames) && (
                               <div className="flex gap-2 flex-wrap">
                                 {domainsResult && (
                                   <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
@@ -298,6 +303,11 @@ export function ReverseIPLookupView() {
                                 {certDomains && (
                                   <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
                                     crt.sh: {certDomains.length}
+                                  </span>
+                                )}
+                                {shodanHostnames !== null && (
+                                  <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
+                                    Shodan: {shodanHostnames.length}
                                   </span>
                                 )}
                               </div>
@@ -351,7 +361,7 @@ export function ReverseIPLookupView() {
 
                 {/* Footer */}
                 <div className="px-5 py-2.5 border-t border-border/40 flex items-center justify-between bg-secondary/10">
-                  <span className="text-[11px] text-muted-foreground/50">Fontes: HackerTarget · crt.sh Certificate Transparency · DoH · ipinfo.io</span>
+                  <span className="text-[11px] text-muted-foreground/50">Fontes: HackerTarget · crt.sh · Shodan InternetDB · DoH · ipinfo.io</span>
                   {allDomains.length > 0 && (
                     <button onClick={() => copyToClipboard(allDomains.join('\n'))}
                       className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
