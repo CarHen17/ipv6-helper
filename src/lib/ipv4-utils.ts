@@ -71,18 +71,19 @@ function getIPClass(firstOctet: number): string {
 }
 
 function getPrivateRange(n: number): string | undefined {
+  // Use >>> 0 on mask results to ensure unsigned comparison
   // 10.0.0.0/8
-  if ((n & 0xff000000) === 0x0a000000) return '10.0.0.0/8';
+  if ((n & 0xff000000) >>> 0 === 0x0a000000) return '10.0.0.0/8';
   // 172.16.0.0/12
-  if ((n & 0xfff00000) === 0xac100000) return '172.16.0.0/12';
+  if ((n & 0xfff00000) >>> 0 === 0xac100000) return '172.16.0.0/12';
   // 192.168.0.0/16
-  if ((n & 0xffff0000) === 0xc0a80000) return '192.168.0.0/16';
+  if ((n & 0xffff0000) >>> 0 === 0xc0a80000) return '192.168.0.0/16';
   // 100.64.0.0/10 (shared address space)
-  if ((n & 0xffc00000) === 0x64400000) return '100.64.0.0/10';
+  if ((n & 0xffc00000) >>> 0 === 0x64400000) return '100.64.0.0/10';
   // 169.254.0.0/16 (link-local)
-  if ((n & 0xffff0000) === 0xa9fe0000) return '169.254.0.0/16';
+  if ((n & 0xffff0000) >>> 0 === 0xa9fe0000) return '169.254.0.0/16';
   // 127.0.0.0/8 (loopback)
-  if ((n & 0xff000000) === 0x7f000000) return '127.0.0.0/8 (Loopback)';
+  if ((n & 0xff000000) >>> 0 === 0x7f000000) return '127.0.0.0/8 (Loopback)';
   return undefined;
 }
 
