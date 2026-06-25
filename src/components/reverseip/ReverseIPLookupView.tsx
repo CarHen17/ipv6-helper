@@ -284,36 +284,33 @@ export function ReverseIPLookupView() {
                     <tr className="hover:bg-secondary/20 transition-colors">
                       <td className="px-5 py-3 font-medium text-foreground align-top">Total de Domínios<br/>Hospedados</td>
                       <td className="px-5 py-3">
-                        {domainsResult?.limited ? (
-                          <span className="text-yellow-400 flex items-center gap-1.5">
-                            <AlertTriangle className="w-3.5 h-3.5" /> Limite diário atingido (HackerTarget)
+                        <div className="space-y-1.5">
+                          <span className={cn('font-semibold', allDomains.length > 0 ? 'text-primary' : 'text-muted-foreground')}>
+                            {allDomains.length}
                           </span>
-                        ) : (
-                          <div className="space-y-1">
-                            <span className={cn('font-semibold', allDomains.length > 0 ? 'text-primary' : 'text-muted-foreground')}>
-                              {allDomains.length}
-                            </span>
-                            {(domainsResult || certDomains || shodanHostnames) && (
-                              <div className="flex gap-2 flex-wrap">
-                                {domainsResult && (
-                                  <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
-                                    HackerTarget: {domainsResult.domains.length}
-                                  </span>
-                                )}
-                                {certDomains && (
-                                  <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
-                                    crt.sh: {certDomains.length}
-                                  </span>
-                                )}
-                                {shodanHostnames !== null && (
-                                  <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
-                                    Shodan: {shodanHostnames.length}
-                                  </span>
-                                )}
-                              </div>
+                          <div className="flex gap-2 flex-wrap">
+                            {domainsResult && !domainsResult.limited && (
+                              <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
+                                HackerTarget: {domainsResult.domains.length}
+                              </span>
+                            )}
+                            {domainsResult?.limited && (
+                              <span className="text-[11px] text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                <AlertTriangle className="w-3 h-3" /> HackerTarget: limite atingido
+                              </span>
+                            )}
+                            {certDomains !== null && (
+                              <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
+                                crt.sh: {certDomains.length}
+                              </span>
+                            )}
+                            {shodanHostnames !== null && (
+                              <span className="text-[11px] text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded">
+                                Shodan: {shodanHostnames.length}
+                              </span>
                             )}
                           </div>
-                        )}
+                        </div>
                       </td>
                     </tr>
 
