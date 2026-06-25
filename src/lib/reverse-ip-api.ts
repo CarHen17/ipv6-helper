@@ -5,6 +5,7 @@
 
 import { lookupDNS } from './ping6-api';
 import { reverseIPv6 } from './ipv6-reverse-utils';
+import { reverseIPv4 } from './ipv4-reverse-utils';
 import { expandIPv6Address, shortenIPv6 } from './ipv6-utils';
 
 const TIMEOUT_MS = 12_000;
@@ -41,6 +42,39 @@ export function normaliseIPv6(input: string): string | null {
     return shortenIPv6(expanded.split('/')[0]);
   } catch {
     return null;
+  }
+}
+
+/**
+ * Normalise an IPv4 input to dotted-decimal form.
+ * Returns null if invalid.
+ */
+export function normaliseIPv4(input: string): string | null {
+  const addr = input.trim().split('/')[0];
+  const parts = addr.split('.');
+  if (parts.length !== 4) return null;
+  const nums = parts.map(Number);
+  if (nums.some(n => isNaN(n) || n < 0 || n > 255 || String(n) !== parts[nums.indexOf(n)])) return null;
+  return nums.join('.');
+}
+
+/** Do a PTR (reverse DNS) lookup for an IPv4 address via DoH. */
+export async function lookupPTRv4(ip: string): Promise<PTRResult> {
+  const result = reverseIPv4(ip);
+  if (!result) throw new Error('Endereço IPv4 inválido');
+
+  const ptrName = result.fullReverse;
+  const start = Date.now();
+
+  try {
+    const dns = await withTimeout(
+      lookupDNS(ptrName, 'PTR', 'cloudflare'),
+      TIMEOUT_MS
+    );
+    const hostname = dns.records.length > 0 ? dns.records[0].value : null;
+    return { hostname, ptrName, queryTime: Date.now() - start };
+  } catch {
+    return { hostname: null, ptrName, queryTime: Date.now() - start };
   }
 }
 

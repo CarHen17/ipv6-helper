@@ -7,7 +7,10 @@ import {
   Globe2, Search, Loader2, RefreshCw, AlertTriangle, Copy, ExternalLink, Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { lookupPTR, lookupHostedDomains, lookupCertDomains, mergeDomains, normaliseIPv6, type PTRResult, type HackerTargetResult } from '@/lib/reverse-ip-api';
+import {
+  lookupPTR, lookupPTRv4, lookupHostedDomains, lookupCertDomains, mergeDomains,
+  normaliseIPv6, normaliseIPv4, type PTRResult, type HackerTargetResult,
+} from '@/lib/reverse-ip-api';
 import { lookupGeo, countryFlag, type GeoInfo } from '@/lib/geo-utils';
 
 const fadeUp = {
@@ -17,21 +20,30 @@ const fadeUp = {
   transition: { duration: 0.3 },
 };
 
-const EXAMPLES = [
+const EXAMPLES_V6 = [
   '2001:4860:4860::8888',
   '2606:4700:4700::1111',
   '2620:fe::fe',
 ];
+
+const EXAMPLES_V4 = [
+  '8.8.8.8',
+  '1.1.1.1',
+  '208.67.222.222',
+];
+
+type Mode = 'ipv6' | 'ipv4';
 
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).then(() => toast.success('Copiado!'));
 }
 
 export function ReverseIPLookupView() {
-  const [ip, setIp]             = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
-  const [searched, setSearched] = useState('');
+  const [mode, setMode]          = useState<Mode>('ipv6');
+  const [ip, setIp]              = useState('');
+  const [loading, setLoading]    = useState(false);
+  const [error, setError]        = useState('');
+  const [searched, setSearched]  = useState('');
 
   const [ptrResult,     setPtrResult]     = useState<PTRResult | null>(null);
   const [domainsResult, setDomainsResult] = useState<HackerTargetResult | null>(null);
@@ -47,10 +59,16 @@ export function ReverseIPLookupView() {
 
   const handleSearch = async () => {
     const raw = ip.trim();
-    if (!raw) { toast.error('Insira um endereço IPv6.'); return; }
+    if (!raw) { toast.error(`Insira um endereço ${mode === 'ipv6' ? 'IPv6' : 'IPv4'}.`); return; }
 
-    const canonical = normaliseIPv6(raw);
-    if (!canonical) { setError('Endereço IPv6 inválido.'); return; }
+    let canonical: string | null;
+    if (mode === 'ipv6') {
+      canonical = normaliseIPv6(raw);
+      if (!canonical) { setError('Endereço IPv6 inválido.'); return; }
+    } else {
+      canonical = normaliseIPv4(raw);
+      if (!canonical) { setError('Endereço IPv4 inválido. Use o formato 192.168.1.1.'); return; }
+    }
 
     setLoading(true);
     setError('');
@@ -60,8 +78,10 @@ export function ReverseIPLookupView() {
     setGeo(null);
     setSearched(canonical);
 
+    const ptrLookup = mode === 'ipv6' ? lookupPTR(canonical) : lookupPTRv4(canonical);
+
     const [ptr, domains, certs, geoData] = await Promise.allSettled([
-      lookupPTR(canonical),
+      ptrLookup,
       lookupHostedDomains(canonical),
       lookupCertDomains(canonical),
       lookupGeo(canonical),
@@ -80,6 +100,14 @@ export function ReverseIPLookupView() {
     setPtrResult(null); setDomainsResult(null); setCertDomains(null); setGeo(null);
   };
 
+  const handleModeChange = (m: Mode) => {
+    setMode(m);
+    setIp(''); setError(''); setSearched('');
+    setPtrResult(null); setDomainsResult(null); setCertDomains(null); setGeo(null);
+  };
+
+  const examples = mode === 'ipv6' ? EXAMPLES_V6 : EXAMPLES_V4;
+
   return (
     <motion.div className="p-4 md:p-6 lg:p-8 max-w-3xl mx-auto" {...fadeUp}>
       {/* Header */}
@@ -90,7 +118,7 @@ export function ReverseIPLookupView() {
             Domínios no IP
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Encontre domínios hospedados em um endereço IPv6 e seu hostname PTR reverso.
+            Encontre domínios hospedados em um endereço {mode === 'ipv6' ? 'IPv6' : 'IPv4'} e seu hostname PTR reverso.
           </p>
         </div>
         {hasResult && !loading && (
@@ -100,16 +128,34 @@ export function ReverseIPLookupView() {
         )}
       </div>
 
+      {/* Mode toggle */}
+      <div className="flex items-center gap-1 p-1 bg-secondary/40 rounded-lg w-fit mb-5 border border-border/40">
+        {(['ipv6', 'ipv4'] as Mode[]).map(m => (
+          <button
+            key={m}
+            onClick={() => handleModeChange(m)}
+            className={cn(
+              'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
+              mode === m
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {m === 'ipv6' ? 'IPv6' : 'IPv4'}
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-4">
         {/* Form card */}
         <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6 space-y-4" {...fadeUp}>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">Endereço IPv6</label>
+            <label className="text-sm font-medium text-foreground">Endereço {mode === 'ipv6' ? 'IPv6' : 'IPv4'}</label>
             <Input
               value={ip}
               onChange={e => { setIp(e.target.value); setError(''); }}
               onKeyDown={e => e.key === 'Enter' && !loading && handleSearch()}
-              placeholder="Ex.: 2001:4860:4860::8888"
+              placeholder={mode === 'ipv6' ? 'Ex.: 2001:4860:4860::8888' : 'Ex.: 8.8.8.8'}
               className={cn('font-mono text-sm bg-secondary/60 border-border/60 h-11', error && 'border-destructive')}
               spellCheck={false}
             />
@@ -126,7 +172,7 @@ export function ReverseIPLookupView() {
               Exemplos
             </summary>
             <div className="flex flex-wrap gap-1.5 pt-1.5">
-              {EXAMPLES.map(ex => (
+              {examples.map(ex => (
                 <button key={ex} onClick={() => { setIp(ex); setError(''); }}
                   className="text-[11px] font-mono px-2.5 py-1 rounded border border-border/60 bg-secondary/40 text-muted-foreground hover:text-primary hover:border-primary/30 transition-colors">
                   {ex}
@@ -176,12 +222,10 @@ export function ReverseIPLookupView() {
               )}
 
               <div className="bg-card rounded-xl border border-border overflow-hidden">
-                {/* Table header */}
                 <div className="px-5 py-3.5 border-b border-border bg-secondary/30">
                   <h2 className="text-sm font-semibold text-foreground">Resultado</h2>
                 </div>
 
-                {/* Rows */}
                 <table className="w-full text-sm">
                   <tbody className="divide-y divide-border/40">
                     {/* IP row */}
