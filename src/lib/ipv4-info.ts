@@ -56,7 +56,7 @@ export function classifyIPv4(cidr: string): IPv4TypeInfo {
   const addr = cidr.split('/')[0];
   const num = ipToNum(addr);
   for (const r of RANGES) {
-    if ((num & r.mask) === r.base) return r.info;
+    if (((num & r.mask) >>> 0) === r.base) return r.info;
   }
   return {
     type: 'Global Unicast',
