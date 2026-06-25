@@ -34,9 +34,9 @@ const PRESETS = [
   'google.com',
   'facebook.com',
   'cloudflare.com',
-  'github.com',
-  'netflix.com',
-  'amazon.com',
+  'youtube.com',
+  'wikipedia.org',
+  'microsoft.com',
 ];
 
 function copyToClipboard(text: string) {
