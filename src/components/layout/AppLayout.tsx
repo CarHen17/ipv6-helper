@@ -22,7 +22,7 @@ const PAGE_META: Record<string, { label: string; Icon: React.ElementType }> = {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const meta = PAGE_META[location.pathname] ?? { label: 'Calculadora IPv6', Icon: Globe };
+  const meta = PAGE_META[location.pathname] ?? { label: 'IP Toolkit', Icon: Globe };
 
   return (
     <SidebarProvider>
