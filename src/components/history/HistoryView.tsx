@@ -75,22 +75,27 @@ export function HistoryView() {
       </div>
 
       {/* Tab toggle */}
-      <div className="inline-flex items-center bg-secondary/60 rounded-full p-1 gap-1 mb-6">
+      <div className="inline-flex items-center rounded-full border border-border bg-muted p-1 gap-0.5 shadow-sm mb-6">
         {(['ipv6', 'ipv4'] as const).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={cn(
-              'px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
-              tab === t
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground'
+              'relative flex items-center gap-2 px-5 py-1.5 rounded-full text-sm font-semibold transition-colors duration-200',
+              tab === t ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            {t === 'ipv6' ? 'IPv6' : 'IPv4'}
+            {tab === t && (
+              <motion.span
+                layoutId="history-toggle"
+                className="absolute inset-0 rounded-full bg-primary shadow-sm"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{t === 'ipv6' ? 'IPv6' : 'IPv4'}</span>
             <span className={cn(
-              'text-[10px] font-semibold px-1.5 py-0.5 rounded-full',
-              tab === t ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-secondary text-muted-foreground'
+              'relative z-10 text-[10px] font-mono px-1.5 py-0.5 rounded-full transition-colors',
+              tab === t ? 'bg-white/20 text-primary-foreground/80' : 'bg-muted-foreground/10 text-muted-foreground/60',
             )}>
               {t === 'ipv6' ? '128-bit' : '32-bit'}
             </span>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -128,19 +128,30 @@ export function IPv6ReverseView() {
       </div>
 
       {/* Mode toggle */}
-      <div className="flex items-center gap-1 p-1 bg-secondary/40 rounded-lg w-fit mb-5 border border-border/40">
+      <div className="inline-flex items-center rounded-full border border-border bg-muted p-1 gap-0.5 shadow-sm mb-5">
         {(['ipv6', 'ipv4'] as Mode[]).map(m => (
           <button
             key={m}
             onClick={() => handleModeChange(m)}
             className={cn(
-              'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-200',
-              mode === m
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
+              'relative flex items-center gap-2 px-5 py-1.5 rounded-full text-sm font-semibold transition-colors duration-200',
+              mode === m ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
             )}
           >
-            {m === 'ipv6' ? 'IPv6' : 'IPv4'}
+            {mode === m && (
+              <motion.span
+                layoutId="ptr-toggle"
+                className="absolute inset-0 rounded-full bg-primary shadow-sm"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{m === 'ipv6' ? 'IPv6' : 'IPv4'}</span>
+            <span className={cn(
+              'relative z-10 text-[10px] font-mono px-1.5 py-0.5 rounded-full transition-colors',
+              mode === m ? 'bg-white/20 text-primary-foreground/80' : 'bg-muted-foreground/10 text-muted-foreground/60',
+            )}>
+              {m === 'ipv6' ? '128-bit' : '32-bit'}
+            </span>
           </button>
         ))}
       </div>
