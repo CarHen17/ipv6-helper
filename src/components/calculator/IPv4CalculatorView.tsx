@@ -285,7 +285,7 @@ export function IPv4CalculatorView() {
                   onChange={e => { setInput(e.target.value); setError(null); setErrorSuggestion(null); }}
                   onKeyDown={e => e.key === 'Enter' && handleCalculate()}
                   placeholder="Ex.: 192.168.0.0/24"
-                  className={cn('font-mono', error && 'border-destructive')}
+                  className={cn('font-mono text-sm bg-secondary/60 border-border/60 flex-1 h-11', error && 'animate-shake border-destructive')}
                 />
                 <Button onClick={handleCalculate} className="shrink-0">
                   <Calculator className="w-4 h-4 mr-2" /> Calcular
