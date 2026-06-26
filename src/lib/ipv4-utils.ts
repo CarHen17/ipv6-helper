@@ -93,7 +93,17 @@ export function validateIPv4(cidr: string): IPv4ValidationError | null {
   }
   const trimmed = cidr.trim();
   const parts = trimmed.split('/');
-  if (parts.length !== 2) {
+  if (parts.length !== 2 || !parts[1]) {
+    // If the input looks like a valid IP without a prefix, give a tailored hint
+    const ipOnly = parts[0];
+    const octets = ipOnly.split('.');
+    const looksLikeIP = octets.length === 4 && octets.every(o => /^\d+$/.test(o) && Number(o) <= 255);
+    if (looksLikeIP) {
+      return {
+        message: 'Prefixo CIDR ausente.',
+        suggestion: `Adicione o prefixo após "/". Exemplo: ${ipOnly}/24`,
+      };
+    }
     return { message: 'Formato CIDR inválido.', suggestion: 'Use o formato: 192.168.0.0/24' };
   }
   const [ip, prefixStr] = parts;

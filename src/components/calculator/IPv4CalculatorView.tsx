@@ -299,12 +299,21 @@ export function IPv4CalculatorView() {
                 <Locate className={cn('w-3.5 h-3.5', fetchingMyIp && 'animate-pulse')} />
                 {fetchingMyIp ? 'Detectando...' : 'Usar meu IP atual'}
               </button>
-              {error && (
-                <div className="rounded-lg bg-destructive/10 border border-destructive/30 p-3 space-y-1">
-                  <p className="text-sm text-destructive font-medium">{error}</p>
-                  {errorSuggestion && <p className="text-xs text-muted-foreground">{errorSuggestion}</p>}
-                </div>
-              )}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-destructive text-sm overflow-hidden"
+                  >
+                    <p>{error}</p>
+                    {errorSuggestion && (
+                      <p className="text-sm mt-1 opacity-70">💡 {errorSuggestion}</p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
               {/* Quick examples */}
             </div>
 
