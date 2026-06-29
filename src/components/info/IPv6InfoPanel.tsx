@@ -8,6 +8,7 @@ import {
   type IPv6LookupResult, type BlockValidation,
   classifyIPv6, fullIPv6Lookup,
 } from '@/lib/ipv6-info';
+import { shortenIPv6 } from '@/lib/ipv6-utils';
 import { validateIPv6, type Ping6ValidateResult } from '@/lib/ping6-api';
 import { lookupGeo, type GeoInfo } from '@/lib/geo-utils';
 import { toast } from 'sonner';
@@ -54,6 +55,8 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
   }, [open, ipv6Address]);
 
   const typeInfo = result?.typeInfo || classifyIPv6(ipv6Address);
+  const [addrPart, prefixPart] = ipv6Address.split('/');
+  const compressedCidr = prefixPart ? `${shortenIPv6(addrPart)}/${prefixPart}` : shortenIPv6(addrPart);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -138,9 +141,9 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
             <section>
               <SectionLabel>Links externos</SectionLabel>
               <ExternalLinks links={[
-                { label: 'bgp.tools', href: `https://bgp.tools/prefix/${ipv6Address}` },
-                { label: 'ipinfo.io', href: `https://ipinfo.io/${ipv6Address.split('/')[0]}` },
-                { label: 'WHOIS', href: `https://search.arin.net/rdap/#q=${ipv6Address}` },
+                { label: 'bgp.tools', href: `https://bgp.tools/prefix/${compressedCidr}` },
+                { label: 'ipinfo.io', href: `https://ipinfo.io/${shortenIPv6(addrPart)}` },
+                { label: 'HE BGP', href: `https://bgp.he.net/net/${compressedCidr}#_whois` },
               ]} />
             </section>
           )}
