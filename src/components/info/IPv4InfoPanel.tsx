@@ -108,8 +108,8 @@ export function IPv4InfoPanel({ open, onOpenChange, ipv4Address }: IPv4InfoPanel
               <SectionLabel>Links externos</SectionLabel>
               <ExternalLinks links={[
                 { label: 'bgp.tools', href: `https://bgp.tools/prefix/${ipv4Address}` },
-                { label: 'HackerTarget', href: `https://hackertarget.com/ip-info/?q=${encodeURIComponent(ipv4Address.split('/')[0])}` },
-                { label: 'WHOIS', href: `https://who.is/whois-ip/address/${encodeURIComponent(ipv4Address.split('/')[0])}` },
+                { label: 'ipinfo.io', href: `https://ipinfo.io/${ipv4Address.split('/')[0]}` },
+                { label: 'WHOIS', href: `https://www.whois.com/whois/${ipv4Address.split('/')[0]}` },
               ]} />
             </section>
           )}
