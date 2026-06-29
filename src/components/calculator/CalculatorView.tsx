@@ -185,10 +185,10 @@ export function CalculatorView() {
       </div>
 
       <div className={ctx.mainBlock
-        ? "grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8"
+        ? "grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6"
         : "max-w-xl mx-auto"
       }>
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           {/* Step 1: Input */}
           <motion.div className="bg-card rounded-xl border border-border p-5 md:p-6" layout>
             <form onSubmit={handleCalcSubmit} className="space-y-4">
@@ -438,7 +438,7 @@ export function CalculatorView() {
         </div>
 
         {/* Right Sidebar - Block Info */}
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <AnimatePresence>
             {ctx.mainBlock && (
               <motion.div

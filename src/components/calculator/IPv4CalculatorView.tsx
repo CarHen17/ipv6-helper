@@ -437,7 +437,7 @@ export function IPv4CalculatorView() {
         {/* ── STEP 3: Subnets ── */}
         {step === 3 && subnets.length > 0 && block && (
           <motion.div key="step3" {...fadeUp}>
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-6">
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_260px] gap-6">
               {/* Left: search + table */}
               <div className="space-y-3">
                 {/* Search */}
