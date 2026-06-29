@@ -139,8 +139,8 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
               <SectionLabel>Links externos</SectionLabel>
               <ExternalLinks links={[
                 { label: 'bgp.tools', href: `https://bgp.tools/prefix/${ipv6Address}` },
-                { label: 'HackerTarget', href: `https://hackertarget.com/as-ip-lookup/?q=${encodeURIComponent(ipv6Address)}` },
-                { label: 'WHOIS', href: `https://who.is/whois/${encodeURIComponent(ipv6Address)}` },
+                { label: 'HackerTarget', href: `https://hackertarget.com/ip-info/?q=${encodeURIComponent(ipv6Address.split('/')[0])}` },
+                { label: 'WHOIS', href: `https://who.is/whois-ip/address/${encodeURIComponent(ipv6Address.split('/')[0])}` },
               ]} />
             </section>
           )}
