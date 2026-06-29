@@ -140,7 +140,7 @@ export function IPv6InfoPanel({ open, onOpenChange, ipv6Address }: IPv6InfoPanel
               <ExternalLinks links={[
                 { label: 'bgp.tools', href: `https://bgp.tools/prefix/${ipv6Address}` },
                 { label: 'ipinfo.io', href: `https://ipinfo.io/${ipv6Address.split('/')[0]}` },
-                { label: 'WHOIS', href: `https://search.arin.net/rdap/#q=${encodeURIComponent(ipv6Address)}` },
+                { label: 'WHOIS', href: `https://search.arin.net/rdap/#q=${ipv6Address}` },
               ]} />
             </section>
           )}

@@ -109,7 +109,7 @@ export function IPv4InfoPanel({ open, onOpenChange, ipv4Address }: IPv4InfoPanel
               <ExternalLinks links={[
                 { label: 'bgp.tools', href: `https://bgp.tools/prefix/${ipv4Address}` },
                 { label: 'ipinfo.io', href: `https://ipinfo.io/${ipv4Address.split('/')[0]}` },
-                { label: 'WHOIS', href: `https://search.arin.net/rdap/#q=${encodeURIComponent(ipv4Address)}` },
+                { label: 'WHOIS', href: `https://search.arin.net/rdap/#q=${ipv4Address}` },
               ]} />
             </section>
           )}
